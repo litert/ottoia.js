@@ -1,0 +1,11 @@
+{
+    "name": "sample",
+    "version": "0.1.0",
+    "main": "index.js",
+    "description": "",
+    "scripts": {},
+    "private": false,
+    "dependencies": {},
+    "devDependencies": {},
+    "peerDependencies": {}
+}
