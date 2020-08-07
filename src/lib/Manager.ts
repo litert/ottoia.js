@@ -358,6 +358,9 @@ class OttoiaManager implements C.IManager {
 
                 this._npm.chdir(pkg.root);
 
+                /**
+                 * Install the indirected dependencies of the new installed dependencies.
+                 */
                 const indirectLocalDeps = this._extractLocalDeps(dep, true);
 
                 if (indirectLocalDeps.length) {
@@ -374,6 +377,9 @@ class OttoiaManager implements C.IManager {
             await this._pkgUtils.save(this._getPackage(pkgName, true));
         }
 
+        /**
+         * Install the new local dependencies for dependents.
+         */
         if (LOCAL_DEPS.length && !noBootStrap) {
 
             await this._bootstrapLocal();
@@ -421,7 +427,6 @@ class OttoiaManager implements C.IManager {
 
             const prevDepMap = this._depCounters.generateMap(pkg.name);
 
-            console.log(pkg.name, deps);
             for (const depName of deps) {
 
                 const dep = this._getPackage(depName, true);
@@ -442,14 +447,16 @@ class OttoiaManager implements C.IManager {
 
             this._npm.chdir(pkg.root);
 
-            console.log(pkg.name);
-            console.log(prevDepMap);
-            console.log(finalDepMap);
-
             for (const d of Object.keys(prevDepMap).filter((v) => this._getPackage(pkgName, true) && !finalDepMap[v])) {
 
                 await this._npm.unlink(d);
             }
+        }
+
+        if (deps.length) {
+
+            await this._cleanLocalPackageNodeModules();
+            await this._bootstrapLocal();
         }
     }
 
@@ -482,6 +489,17 @@ class OttoiaManager implements C.IManager {
 
             await this._pkgUtils.save(this._getPackage(p, false));
         }
+    }
+
+    private async _cleanLocalPackageNodeModules(): Promise<void> {
+
+        for (const pkgName of Object.keys(this._packages)) {
+
+            const pkg = this._packages[pkgName];
+
+            await this._fs.execAt(pkg.root, 'rm', '-rf', 'node_modules');
+        }
+
     }
 
     public async clean(packages: string[] = [], full: boolean = false): Promise<void> {
