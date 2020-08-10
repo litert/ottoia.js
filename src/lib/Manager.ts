@@ -1,8 +1,18 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import * as C from './Common';
 import * as I from './_internal';
 import * as E from './Errors';
 
 const DEP_VER_PLACE_HOLDER = '-';
+
+const NPM_HOOKS = [
+    'prepublish',
+    'prepare',
+    'prepublishOnly',
+    'prepack',
+    'postpack',
+    'publish'
+];
 
 class OttoiaManager implements C.IManager {
 
@@ -14,7 +24,7 @@ class OttoiaManager implements C.IManager {
 
     private _depCounters: I.IDependencyCounter = I.createDependencyCounter();
 
-    private _masterPackage!: I.IMasterPackage;
+    private _rootPackage!: I.IRootPackage;
 
     private _pkgRoot!: string;
 
@@ -29,45 +39,380 @@ class OttoiaManager implements C.IManager {
         this._npm = I.createNPMHelper(this._root, this._fs);
     }
 
+    public async release(opts: C.IReleaseOptions): Promise<void> {
+
+        const cfg = this._rootPackage.ottoiaOptions.releases[opts.env];
+
+        if (!cfg) {
+
+            throw new E.E_RELEASE_CONFIG_NOT_FOUND({ metadata: { env: opts.env } });
+        }
+
+        if (!opts.confirmed) {
+
+            console.log(`Simulating releasing ${opts.env} version with "--dry-run"...`);
+        }
+
+        let version: string;
+
+        const pkgVersions = await this._npm.getCurrentVersionSet(
+            Object.keys(this._packages),
+            I.builtInCmpSemVersion,
+            cfg.tag
+        );
+
+        if (Object.keys(pkgVersions).length) {
+
+            /**
+             * Use the newest one if any package exists.
+             */
+            version = Object.values(pkgVersions).sort(I.builtInCmpSemVersion).pop() as string;
+        }
+        else {
+
+            /**
+             * Use a new version if none of package exists
+             */
+            version = '0.0.0';
+        }
+
+        const versioner = cfg.versioner ?
+            require(this._fs.concatPath(this._root, cfg.versioner)).default as C.IVersionNamer :
+            I.createBuiltInVersionNamer();
+
+        version = versioner.next(
+            version,
+            opts.env,
+            opts.withBreakingChanges,
+            opts.withNewFeatures,
+            opts.withPatches
+        );
+
+        console.log(`Releasing the ${opts.env} version "v${version}"...`);
+
+        try {
+
+            await this._backupPackageJson();
+
+            await this._setupDependencies(version);
+
+            for (const pkgName in this._packages) {
+
+                const pkg = this._packages[pkgName];
+
+                if (pkg.noRelease) {
+
+                    continue;
+                }
+
+                this._npm.chdir(pkg.root);
+
+                console.log(`Preparing package "${pkgName}".`);
+
+                if (pkg.scripts['ottoia:prepublish']) {
+
+                    console.log('Executing ottoia hook "ottoia:prepublish".');
+                    await this._npm.run('ottoia:prepublish', []);
+                }
+            }
+
+            for (const pkgName in this._packages) {
+
+                const pkg = this._packages[pkgName];
+
+                if (pkg.noRelease) {
+
+                    continue;
+                }
+
+                console.log(`Publishing package "${pkgName}@${version}".`);
+
+                this._npm.chdir(pkg.root);
+
+                const extArgs: string[] = [];
+
+                if (!opts.confirmed) {
+
+                    extArgs.push('--dry-run');
+                }
+
+                /**
+                 * For the first release of this public package.
+                 */
+                if (!pkgVersions[pkgName] && !pkg.privateAccess) {
+
+                    extArgs.push('--access=public');
+                }
+
+                await this._npm.publish(extArgs);
+            }
+
+            for (const pkgName in this._packages) {
+
+                const pkg = this._packages[pkgName];
+
+                if (pkg.noRelease) {
+
+                    continue;
+                }
+
+                this._npm.chdir(pkg.root);
+
+                if (pkg.scripts['ottoia:postpublish']) {
+
+                    console.log('Executing ottoia hook "ottoia:postpublish".');
+                    await this._npm.run('ottoia:postpublish', []);
+                }
+            }
+        }
+        finally {
+
+            this._npm.close();
+
+            await this._cleanPackageJsonBackup();
+        }
+    }
+
+    private _getDependencyVersion(depName: string, pkgName: string): string {
+
+        const localPkg = this._packages[depName];
+
+        if (localPkg) {
+
+            if (localPkg.noRelease) {
+
+                throw new E.E_PRIVATE_DEPENDENCY({
+                    metadata: { package: pkgName, dependency: depName }
+                });
+            }
+
+            return `^${localPkg.version}`;
+        }
+
+        if (!this._rootPackage.raw.dependencies[depName]) {
+
+            throw new E.E_DEP_NOT_LOCKED({
+                metadata: { package: pkgName, dependency: depName }
+            });
+        }
+
+        return this._rootPackage.raw.dependencies[depName];
+    }
+
+    /**
+     * Setup the dependencies of each package.
+     */
+    private async _setupDependencies(version: string): Promise<void> {
+
+        for (const pkgName in this._packages) {
+
+            const pkg = this._packages[pkgName];
+
+            if (pkg.noRelease) {
+
+                continue;
+            }
+
+            pkg.raw.version = pkg.version = version;
+        }
+
+        for (const pkgName in this._packages) {
+
+            const pkg = this._packages[pkgName];
+
+            if (pkg.noRelease) {
+
+                continue;
+            }
+
+            pkg.raw.version = pkg.version = version;
+
+            for (const depName in pkg.raw.dependencies) {
+
+                pkg.raw.dependencies[depName] = this._getDependencyVersion(depName, pkgName);
+            }
+
+            for (const depName in pkg.raw.peerDependencies) {
+
+                pkg.raw.peerDependencies[depName] = this._getDependencyVersion(depName, pkgName);
+            }
+
+            for (const hookName of NPM_HOOKS) {
+
+                if (pkg.raw.scripts?.[hookName]) {
+
+                    console.warn(`Ignored NPM built-in hook script "${hookName}".`);
+                    delete pkg.raw.scripts?.[hookName];
+                }
+            }
+
+            await this._fs.writeFile(
+                this._fs.concatPath(pkg.root, 'package.json'),
+                JSON.stringify(pkg.raw)
+            );
+        }
+    }
+
+    private async _backupPackageJson(): Promise<void> {
+
+        const tmpPath = this._fs.concatPath(this._root, '.ottoia/tmp/packages.d');
+
+        await this._fs.mkdirP(tmpPath);
+
+        for (const pkgName in this._packages) {
+
+            const pkg = this._packages[pkgName];
+
+            if (pkg.noRelease) {
+
+                continue;
+            }
+
+            await this._fs.copyFile(
+                this._fs.concatPath(pkg.root, 'package.json'),
+                this._fs.concatPath(tmpPath, pkg.name.replace(/\//g, '-') + '.json')
+            );
+        }
+    }
+
+    private async _cleanPackageJsonBackup(): Promise<void> {
+
+        const tmpPath = this._fs.concatPath(this._root, '.ottoia/tmp/packages.d');
+
+        if (!await this._fs.existsDir(tmpPath)) {
+
+            return;
+        }
+
+        for (const pkgName in this._packages) {
+
+            const pkg = this._packages[pkgName];
+
+            if (pkg.noRelease) {
+
+                continue;
+            }
+
+            const bakFile = this._fs.concatPath(tmpPath, pkg.name.replace(/\//g, '-') + '.json');
+
+            if (!await this._fs.existsFile(bakFile)) {
+
+                continue;
+            }
+
+            await this._fs.copyFile(
+                bakFile,
+                this._fs.concatPath(pkg.root, 'package.json')
+            );
+
+            await this._fs.removeFile(bakFile);
+        }
+    }
+
+    public async run(pkgs: string[], cmd: string, args: string[]): Promise<void> {
+
+        pkgs = pkgs.map((v) => v.toLowerCase());
+
+        if (pkgs.length) {
+
+            this._checkPackages(pkgs);
+        }
+        else {
+
+            pkgs = Object.keys(this._packages);
+        }
+
+        for (const pkgName of pkgs) {
+
+            const pkg = this._getPackage(pkgName, false);
+
+            if (!pkg.scripts[cmd]) {
+
+                console.warn(`Command not found in package "${pkg.name}".`);
+                continue;
+            }
+
+            this._npm.chdir(pkg.root);
+
+            console.log(await this._npm.run(cmd, args));
+        }
+    }
+
     public async initialize(ensured?: boolean): Promise<void> {
 
-        const PATH_TO_MASTER_JSON = this._fs.concatPath(this._root, 'package.json');
+        const PATH_TO_ROOT_JSON = this._fs.concatPath(this._root, 'package.json');
 
-        if (!await this._fs.existsFile(PATH_TO_MASTER_JSON)) {
+        let newJson = false;
+
+        if (!await this._fs.existsFile(PATH_TO_ROOT_JSON)) {
+
+            newJson = true;
 
             await this._npm.init();
         }
         else if (!ensured) {
 
-            throw new E.E_EXISTING_PACKAGE_JSON({ metadata: { path: PATH_TO_MASTER_JSON } });
+            throw new E.E_EXISTING_PACKAGE_JSON({ metadata: { path: PATH_TO_ROOT_JSON } });
         }
 
-        const masterJson = JSON.parse(await this._fs.readFile(PATH_TO_MASTER_JSON));
+        const rootJson = JSON.parse(await this._fs.readFile(PATH_TO_ROOT_JSON));
 
         const ottoiaProjectJSON = await this._fs.readJsonFile<I.INPMPackage>(`${__dirname}/../package.json`);
 
-        masterJson.ottoia = true;
+        rootJson.ottoia = true;
 
-        masterJson.private = true;
+        rootJson.private = true;
 
-        if (!masterJson.devDependencies || typeof masterJson.devDependencies !== 'object') {
+        if (!rootJson.devDependencies || typeof rootJson.devDependencies !== 'object') {
 
-            masterJson.devDependencies = {};
+            rootJson.devDependencies = {};
         }
 
-        masterJson.devDependencies[ottoiaProjectJSON.name] = `^${ottoiaProjectJSON.version}`;
+        rootJson.devDependencies[ottoiaProjectJSON.name] = `^${ottoiaProjectJSON.version}`;
 
-        if (!masterJson.version) {
+        if (!rootJson.version || newJson) {
 
-            masterJson.version = '1.0.0';
+            rootJson.version = '0.1.0';
         }
 
-        await this._fs.writeFile(PATH_TO_MASTER_JSON, JSON.stringify(masterJson, null, 2));
+        if (typeof rootJson.ottoia !== 'object') {
+
+            rootJson.ottoia = {
+                'releases': {
+
+                    'production': { tag: 'latest' }
+                }
+            };
+        }
+
+        if (typeof rootJson.ottoia.releases !== 'object') {
+
+            rootJson.ottoia.releases = {
+
+                'production': { tag: 'latest' }
+            };
+        }
+
+        await this._fs.writeFile(PATH_TO_ROOT_JSON, JSON.stringify(rootJson, null, 2));
 
         await this._fs.mkdirP(this._fs.concatPath(this._root, 'packages'));
+
+        const GIT_IGNORE_PATH = this._fs.concatPath(this._root, '.gitignore');
+
+        if (await this._fs.existsFile(GIT_IGNORE_PATH)) {
+
+            const GIT_IGNORE_CONTENT = await this._fs.readFile(GIT_IGNORE_PATH);
+            if (!GIT_IGNORE_CONTENT.includes('.ottoia')) {
+
+                await this._fs.writeFile(
+                    GIT_IGNORE_PATH,
+                    ['.ottoia', ...GIT_IGNORE_CONTENT.split('\n').map((v) => v.trim())].join('\n')
+                );
+            }
+        }
     }
 
-    public async ensureMasterPackageRoot(): Promise<void> {
+    public async ensureRootPackagePath(): Promise<void> {
 
         let curPath = this._root;
 
@@ -75,7 +420,7 @@ class OttoiaManager implements C.IManager {
 
             try {
 
-                this._masterPackage = await this._pkgUtils.readMaster(curPath);
+                this._rootPackage = await this._pkgUtils.readRoot(curPath);
 
                 this._root = curPath;
                 break;
@@ -86,7 +431,7 @@ class OttoiaManager implements C.IManager {
 
                 if (newPath === curPath) {
 
-                    throw new E.E_NO_MASTER_PACKAGE({ metadata: { cwd: this._root } });
+                    throw new E.E_NO_ROOT_PACKAGE({ metadata: { cwd: this._root } });
                 }
 
                 curPath = newPath;
@@ -169,7 +514,8 @@ class OttoiaManager implements C.IManager {
 
         return {
             'name': pkg.name,
-            'isPrivate': pkg.isPrivate,
+            'noRelease': pkg.noRelease,
+            'privateAccess': pkg.privateAccess,
             'alias': pkg.alias,
             'scripts': { ...pkg.scripts },
             'dependencies': { ...pkg.dependencies },
@@ -210,7 +556,8 @@ class OttoiaManager implements C.IManager {
     public async createPackage(
         name: string,
         tplFile?: string,
-        isPrivate: boolean = false,
+        noRelease: boolean = false,
+        privateAccess: boolean = false,
         dirName?: string,
         aliasName?: string
     ): Promise<void> {
@@ -239,8 +586,9 @@ class OttoiaManager implements C.IManager {
             root: this._pkgRoot,
             name,
             templateFile: tplFile,
-            isPrivate,
+            noRelease,
             dirName,
+            privateAccess,
             alias: aliasName
         });
 
@@ -284,7 +632,7 @@ class OttoiaManager implements C.IManager {
 
         this._npm.chdir(this._root);
 
-        await this._npm.install(REMOTE_DEPS, isPeer, isDev);
+        await this._npm.install(REMOTE_DEPS);
 
         for (const depName of REMOTE_DEPS) {
 
@@ -521,7 +869,7 @@ class OttoiaManager implements C.IManager {
 
                 this._npm.chdir(pkg.root);
 
-                await this._npm.run('clean');
+                await this._npm.run('clean', []);
             }
 
             if (full) {
@@ -530,11 +878,11 @@ class OttoiaManager implements C.IManager {
             }
         }
 
-        if (this._masterPackage.scripts['ottoia:clean']) {
+        if (this._rootPackage.scripts['ottoia:clean']) {
 
             this._npm.chdir(this._root);
 
-            await this._npm.run('ottoia:clean');
+            await this._npm.run('ottoia:clean', []);
         }
 
         if (full) {

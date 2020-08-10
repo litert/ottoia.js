@@ -18,6 +18,7 @@ module.exports = {
             'cmd:init',
             'cmd:clean',
             'cmd:bootstrap',
+            'cmd:release',
             'cmd:show',
             'skeleton',
             'internal',

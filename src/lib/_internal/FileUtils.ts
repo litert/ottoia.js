@@ -23,9 +23,13 @@ class FileUtils implements I.IFileUtils {
         });
     }
 
-    public async execAt(cwd: string, cmd: string, ...args: string[]): Promise<void> {
+    public async execAt(cwd: string, cmd: string, ...args: string[]): Promise<string> {
 
         const oldCWD = process.cwd();
+
+        const cmdline = [cmd, ...args].map((v) => v.includes(' ') ? `"${v}"` : v).join(' ');
+
+        console.log(`exec: ${cmdline}`);
 
         if (!await this.existsDir(cwd)) {
 
@@ -36,12 +40,14 @@ class FileUtils implements I.IFileUtils {
 
             process.chdir(cwd);
 
-            const result = await this._exec([cmd, ...args].map((v) => v.includes(' ') ? `"${v}"` : v).join(' '));
+            const result = await this._exec(cmdline);
 
             if (typeof result !== 'string') {
 
                 throw result;
             }
+
+            return result;
         }
         finally {
 
@@ -153,7 +159,11 @@ class FileUtils implements I.IFileUtils {
 
     public async readDir(path: string): Promise<string[]> {
 
-        return (await $FS.readdir(path)).map((v) => $Path.resolve(path, v));
+        return (await $FS.readdir(path)).filter(
+            (v) => v !== '.' && v !== '..'
+        ).map(
+            (v) => $Path.resolve(path, v)
+        );
     }
 }
 

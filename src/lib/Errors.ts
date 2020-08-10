@@ -5,7 +5,21 @@ export const errors = L.createErrorHub('@litert/ottoia');
 export const E_PACKAGE_NOT_FOUND = errors.define(
     null,
     'package_not_found',
-    'The determined package does not exist.',
+    'No such a package.',
+    {}
+);
+
+export const E_NPM_ERROR = errors.define(
+    null,
+    'npm_error',
+    'Failed with NPM operation.',
+    {}
+);
+
+export const E_PACKAGE_NOT_RELEASED = errors.define(
+    null,
+    'package_not_released',
+    'The package has not been published yet.',
     {}
 );
 
@@ -27,6 +41,20 @@ export const E_DUP_PACKAGE = errors.define(
     null,
     'dup_package',
     'The determined package already exists.',
+    {}
+);
+
+export const E_RELEASE_CONFIG_NOT_FOUND = errors.define(
+    null,
+    'release_config_not_found',
+    'No such a release configuration.',
+    {}
+);
+
+export const E_COMMAND_NOT_FOUND = errors.define(
+    null,
+    'command_not_found',
+    'No such a command.',
     {}
 );
 
@@ -65,17 +93,17 @@ export const E_INVALID_JSON_FILE = errors.define(
     {}
 );
 
-export const E_INVALID_MASTER_PACKAGE = errors.define(
+export const E_INVALID_ROOT_PACKAGE = errors.define(
     null,
-    'invalid_master_package',
-    'The package.json of master package is malformed.',
+    'invalid_root_package',
+    'The package.json of root package is malformed.',
     {}
 );
 
-export const E_NO_MASTER_PACKAGE = errors.define(
+export const E_NO_ROOT_PACKAGE = errors.define(
     null,
-    'no_master_package',
-    'The master package not fond.',
+    'no_root_package',
+    'The root package not fond.',
     {}
 );
 
@@ -103,6 +131,20 @@ export const E_UNKNOWN_SUB_PACKAGE = errors.define(
 export const E_DEP_NOT_FOUND = errors.define(
     null,
     'dep_not_found',
-    'The determined dependency does not exist.',
+    'No such a dependency.',
+    {}
+);
+
+export const E_DEP_NOT_LOCKED = errors.define(
+    null,
+    'dep_not_locked',
+    'No such a dependency in the root package.json.',
+    {}
+);
+
+export const E_PRIVATE_DEPENDENCY = errors.define(
+    null,
+    'private_dependency',
+    'Can not depend on a private sub package.',
     {}
 );

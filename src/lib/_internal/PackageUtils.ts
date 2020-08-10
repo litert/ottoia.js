@@ -15,7 +15,15 @@ const isNodePackage = tgc.compile<I.INPMPackage>({
         'scripts->{}?': 'string',
         'dependencies->{}?': 'string',
         'devDependencies->{}?': 'string',
-        'peerDependencies->{}?': 'string'
+        'peerDependencies->{}?': 'string',
+        'access?': ['==private', '==public'],
+        'ottoia?': {
+            'releases->{}': {
+                'tag': 'string',
+                'versioner?': 'string',
+                'registry?': 'string'
+            }
+        }
     }
 });
 
@@ -27,14 +35,16 @@ class PackageUtils implements I.IPackageUtils {
 
     public constructor(private readonly _fs: I.IFileUtils) {}
 
-    public async readMaster(path: string): Promise<I.IMasterPackage> {
+    public async readRoot(path: string): Promise<I.IRootPackage> {
 
-        const ret = await this.read(path) as I.IMasterPackage;
+        const ret = await this.read(path) as I.IRootPackage;
 
         if (!ret.version || !ret.raw.ottoia) {
 
-            throw new E.E_INVALID_MASTER_PACKAGE({ metadata: { path } });
+            throw new E.E_INVALID_ROOT_PACKAGE({ metadata: { path } });
         }
+
+        ret.ottoiaOptions = ret.raw.ottoia;
 
         return ret;
     }
@@ -53,7 +63,8 @@ class PackageUtils implements I.IPackageUtils {
             'name': packageJson.name.toLowerCase(),
             'alias': packageJson['ottoia:alias'],
             'version': packageJson.version,
-            'isPrivate': !!packageJson.private,
+            'noRelease': !!packageJson.private,
+            'privateAccess': packageJson.access !== 'public',
             'scripts': packageJson.scripts ?? {},
             'dependencies': packageJson.dependencies,
             'devDependencies': packageJson.devDependencies,
@@ -148,13 +159,20 @@ class PackageUtils implements I.IPackageUtils {
             return;
         }
 
+        const originFile = await this._fs.readJsonFile<Record<string, any>>(fullInFile);
+
         await this._fs.writeFile(
             fullOutFile,
             JSON.stringify({
                 ...await this._fs.readJsonFile<any>(fullInFile),
                 'name': opts.name,
-                'private': !!opts.isPrivate,
-                'ottoia:alias': opts.alias
+                'private': !!opts.noRelease,
+                'ottoia:alias': opts.alias,
+                'access': opts.privateAccess ? 'private' : 'public',
+                'scripts': {
+                    ...originFile.scripts,
+                    'prepublishOnly': 'echo "Please use ottoia publishing this package!"; exit 1;'
+                }
             }, null, 2)
         );
     }
@@ -173,11 +191,6 @@ class PackageUtils implements I.IPackageUtils {
         const items = await this._fs.readDir(root);
 
         for (const subItem of items) {
-
-            if (subItem.endsWith('.')) {
-
-                continue;
-            }
 
             if (!await this._fs.existsDir(subItem)) {
 

@@ -4,7 +4,12 @@ export interface IPackage {
 
     alias?: string;
 
-    isPrivate: boolean;
+    privateAccess: boolean;
+
+    /**
+     * No releasing versions online.
+     */
+    noRelease: boolean;
 
     scripts: Record<string, string>;
 
@@ -15,13 +20,32 @@ export interface IPackage {
     peerDependencies: Record<string, string>;
 }
 
+export interface IReleaseOptions {
+
+    env: string;
+
+    withBreakingChanges: boolean;
+
+    withNewFeatures: boolean;
+
+    withPatches: boolean;
+
+    confirmed: boolean;
+}
+
+export type IVersionComparer = (a: string, b: string) => number;
+
 export interface IManager {
+
+    run(pkgs: string[], cmd: string, args: string[]): Promise<void>;
 
     initialize(ensured?: boolean): Promise<void>;
 
-    ensureMasterPackageRoot(): Promise<void>;
+    ensureRootPackagePath(): Promise<void>;
 
     reload(): Promise<void>;
+
+    release(opts: IReleaseOptions): Promise<void>;
 
     getPackage(name: string): IPackage;
 
@@ -30,7 +54,8 @@ export interface IManager {
     createPackage(
         name: string,
         tplFile?: string,
-        isPrivate?: boolean,
+        noRelease?: boolean,
+        privateAccess?: boolean,
         dirName?: string,
         aliasName?: string
     ): Promise<void>;
@@ -57,4 +82,15 @@ export interface IManager {
     //     command: string,
     //     packages: string[]
     // ): Promise<void>;
+}
+
+export interface IVersionNamer {
+
+    next(
+        current: string,
+        env: string,
+        withBreakingChanges: boolean,
+        withNewFeatures: boolean,
+        withPatches: boolean,
+    ): string;
 }

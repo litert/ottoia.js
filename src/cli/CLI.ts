@@ -24,7 +24,7 @@ export default class OttoiaCLI {
 
         if (this._cla.commands[0].name !== 'init') {
 
-            await this._ottoia.ensureMasterPackageRoot();
+            await this._ottoia.ensureRootPackagePath();
 
             await this._ottoia.reload();
         }
@@ -42,6 +42,24 @@ export default class OttoiaCLI {
                 await this._ottoia.bootstrap();
                 break;
             }
+            case 'run': {
+                await this._ottoia.run(
+                    this._cla.commands[0].options.package ?? [],
+                    this._cla.arguments[0],
+                    this._cla.arguments.slice(1),
+                );
+                break;
+            }
+            case 'release': {
+                await this._ottoia.release({
+                    env: this._cla.arguments[0],
+                    withBreakingChanges: !!this._cla.commands[0].flags['breaking-changes'],
+                    withNewFeatures: !!this._cla.commands[0].flags['new-feature'],
+                    withPatches: !!this._cla.commands[0].flags['patch'],
+                    confirmed: !!this._cla.commands[0].flags['confirm'],
+                });
+                break;
+            }
             case 'create': {
 
                 const tplFile = this._cla.commands[0].options.template?.[0];
@@ -49,7 +67,8 @@ export default class OttoiaCLI {
                 await this._ottoia.createPackage(
                     this._cla.arguments[0],
                     tplFile,
-                    !!this._cla.commands[0].flags.private,
+                    !!this._cla.commands[0].flags['no-release'],
+                    !!this._cla.commands[0].flags['private-access'],
                     this._cla.commands[0].options.dir?.[0],
                     this._cla.commands[0].options.alias?.[0],
                 );
@@ -111,7 +130,8 @@ export default class OttoiaCLI {
 
             console.log(`  Alias: ${pkg.alias}`);
         }
-        console.log(`  Type: ${pkg.isPrivate ? 'Private' : 'Public'}`);
+        console.log(`  Release: ${pkg.noRelease ? 'No' : 'Yes'}`);
+        console.log(`  Access: ${pkg.privateAccess ? 'Private' : 'Public'}`);
 
         if (deps.length || devDeps.length || peerDeps.length) {
             console.log('  Dependencies:');

@@ -1,6 +1,12 @@
+import * as L from '@litert/core';
 import * as I from './Internal';
+import * as C from '../Common';
+import * as E from '../Errors';
+import * as $Http from '@litert/http-client';
 
 class NPMHelper implements I.INPMHelper {
+
+    private _hCli = $Http.createHttpClient();
 
     public constructor(private _cwd: string, private _fs: I.IFileUtils) { }
 
@@ -55,9 +61,83 @@ class NPMHelper implements I.INPMHelper {
         await this._fs.execAt(this._cwd, 'npm', 'install', ...dependencies);
     }
 
-    public async run(cmdName: string, ...args: any[]): Promise<void> {
+    public async getCurrentVersionSet(
+        names: string[],
+        comparer?: C.IVersionComparer,
+        tag?: string
+    ): Promise<Record<string, string>> {
 
-        await this._fs.execAt(this._cwd, 'npm', 'run', cmdName, ...args);
+        const results = await L.Async.multiTasks(names.map((v) => this.getCurrentVersion(v, comparer, tag)));
+
+        const ret: Record<string, string> = {};
+
+        for (let i = 0; i < names.length; i++) {
+
+            const item = results[i];
+
+            if (item.success) {
+
+                ret[names[i]] = item.result[0];
+                continue;
+            }
+
+            if (item.result instanceof E.E_PACKAGE_NOT_RELEASED) {
+
+                continue;
+            }
+
+            throw item.result;
+        }
+
+        return ret;
+    }
+
+    public async run(cmdName: string, args: any[]): Promise<string> {
+
+        return await this._fs.execAt(this._cwd, 'npm', 'run', cmdName, ...args);
+    }
+
+    public async publish(args: any[]): Promise<string> {
+
+        return await this._fs.execAt(this._cwd, 'npm', 'publish', ...args);
+    }
+
+    public close(): void {
+
+        this._hCli.close();
+    }
+
+    public async getCurrentVersion(
+        pkgName: string,
+        comparer: C.IVersionComparer = I.builtInCmpSemVersion,
+        tag: string = 'latest'
+    ): Promise<string> {
+
+        const hReq = await this._hCli.request({
+            url: `https://registry.npmjs.com/${pkgName}`,
+            method: 'GET',
+            'gzip': false,
+            version: 1.1
+        });
+
+        if (hReq.statusCode !== 200) {
+
+            if (hReq.statusCode === 404) {
+
+                throw new E.E_PACKAGE_NOT_RELEASED({ metadata: { package: pkgName }  });
+            }
+
+            throw new E.E_NPM_ERROR();
+        }
+
+        const data = JSON.parse((await hReq.getBuffer()).toString())['dist-tags'] as Record<string, string>;
+
+        if (data[tag]) {
+
+            return data[tag];
+        }
+
+        return Object.values(data).sort(comparer).reverse()[0];
     }
 
     public async uninstall(dependencies: string[], peer?: boolean, dev?: boolean): Promise<void> {

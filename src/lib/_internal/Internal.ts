@@ -1,5 +1,19 @@
 import * as C from '../Common';
 
+export interface IReleaseOptions {
+
+    tag: string;
+
+    versioner?: string;
+
+    registry?: string;
+}
+
+export interface IPackageOttoiaOptions {
+
+    releases: Record<string, IReleaseOptions>;
+}
+
 export interface INPMPackage {
 
     'name': string;
@@ -10,13 +24,15 @@ export interface INPMPackage {
 
     'version': string;
 
-    'ottoia'?: boolean;
+    'ottoia'?: IPackageOttoiaOptions;
 
     'private'?: boolean;
 
     'scripts'?: Record<string, string>;
 
     'dependencies': Record<string, string>;
+
+    'access'?: 'public' | 'private';
 
     'devDependencies': Record<string, string>;
 
@@ -34,13 +50,21 @@ export interface IPackage extends C.IPackage {
 
 export interface INPMHelper {
 
+    close(): void;
+
+    getCurrentVersion(name: string, comparer?: C.IVersionComparer, tag?: string): Promise<string>;
+
+    getCurrentVersionSet(names: string[], comparer?: C.IVersionComparer, tag?: string): Promise<Record<string, string>>;
+
     chdir(cwd: string): void;
 
     bootstrap(): Promise<void>;
 
     install(dependencies: string[], peer?: boolean, dev?: boolean): Promise<void>;
 
-    run(cmdName: string, ...args: any[]): Promise<void>;
+    run(cmdName: string, args: any[]): Promise<string>;
+
+    publish(args: any[]): Promise<string>;
 
     uninstall(dependencies: string[]): Promise<void>;
 
@@ -56,9 +80,11 @@ export interface INPMHelper {
     exists(name: string): Promise<boolean>;
 }
 
-export interface IMasterPackage extends IPackage {
+export interface IRootPackage extends IPackage {
 
     version: string;
+
+    ottoiaOptions: IPackageOttoiaOptions;
 }
 
 export interface IPackageScanner {
@@ -68,7 +94,7 @@ export interface IPackageScanner {
 
 export interface IFileUtils {
 
-    execAt(cwd: string, cmd: string, ...args: string[]): Promise<void>;
+    execAt(cwd: string, cmd: string, ...args: string[]): Promise<string>;
 
     concatPath(...segs: string[]): string;
 
@@ -103,7 +129,9 @@ export interface IPackageOptions {
 
     name: string;
 
-    isPrivate: boolean;
+    noRelease: boolean;
+
+    privateAccess: boolean;
 
     templateFile?: string;
 
@@ -118,7 +146,7 @@ export interface IPackageUtils {
 
     create(opts?: IPackageOptions): Promise<IPackage>;
 
-    readMaster(path: string): Promise<IMasterPackage>;
+    readRoot(path: string): Promise<IRootPackage>;
 
     read(path: string): Promise<IPackage>;
 
@@ -134,4 +162,22 @@ export interface IDependencyCounter {
     isDependingOn(dep: string, pkgName?: string): boolean;
 
     generateMap(pkgName?: string): Record<string, number>;
+}
+
+export function builtInCmpSemVersion(x: string, y: string): number {
+
+    const a = x.split('.').map((v) => parseInt(v));
+    const b = y.split('.').map((v) => parseInt(v));
+
+    if (a.length !== b.length) {
+        [a, b].sort((x, y) => x.length - y.length)[0].push(...Array(Math.abs(a.length - b.length)).fill(0));
+    }
+
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return a[i] - b[i];
+        }
+    }
+
+    return 0;
 }

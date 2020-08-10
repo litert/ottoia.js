@@ -7,8 +7,7 @@ function createCLAParser(): $Clap.IParser {
     // ottoia create <package> [--template=pathOrPackage]
     // ottoia install <...deps> [--scope=<package>[ ...--scope=<package>]] [--development|-D|--peer|-P]
     // ottoia uninstall <...deps> [--scope=<package>[ ...--scope=<package>]]
-    // ottoia release [--version=<new-version>|--major|--minor|--patch|--pre-release]
-    // ottoia publish [...packages] [--tag=tagName]
+    // ottoia release <env> [--breaking-change|--new-features|--patch]
     // ottoia show <package>
 
     parser.addCommand({
@@ -24,17 +23,17 @@ function createCLAParser(): $Clap.IParser {
         description: 'Uninstall dependencies of specific sub packages.',
         aliases: 'un'
     }).addCommand({
-        name: 'publish',
-        description: 'Publish specific packages.'
-    }).addCommand({
         name: 'release',
-        description: 'Release a new version of specific packages.'
+        description: 'Release a new version online.',
+        minArguments: 1,
+        maxArguments: 1
     }).addCommand({
         name: 'show',
         description: 'Display the information of specific packages.'
     }).addCommand({
         name: 'run',
-        description: 'Run a command defined in root package.json.'
+        description: 'Run a command defined in root package.json.',
+        minArguments: 1
     }).addCommand({
         name: 'init',
         description: 'Create or initialized the package.json in the project root.'
@@ -66,9 +65,14 @@ function createCLAParser(): $Clap.IParser {
         'arguments': 0
     }).addOption({
         'path': 'create',
-        'name': 'private',
+        'name': 'private-access',
         'shortcut': 'p',
-        'description': 'Mark the new package as private.',
+        'description': 'Mark the accessibility of new package as private.',
+        'arguments': 0
+    }).addOption({
+        'path': 'create',
+        'name': 'no-release',
+        'description': 'Forbid releasing the new package online.',
         'arguments': 0
     }).addOption({
         'path': 'create',
@@ -83,6 +87,23 @@ function createCLAParser(): $Clap.IParser {
         'description': 'Specify the name of package directory.',
         'arguments': 1
     }).addOption({
+        'path': 'run',
+        'name': 'package',
+        'shortcut': 'p',
+        'description': 'Specify which package should be run command at.'
+    }).addOption({
+        'path': 'run',
+        'name': 'root',
+        'shortcut': 'r',
+        'description': 'Also run the command in the root package.',
+        'arguments': 0
+    }).addOption({
+        'path': 'run',
+        'name': 'root-only',
+        'shortcut': 'R',
+        'description': 'Run the command in the root package only.',
+        'arguments': 0
+    }).addOption({
         'path': 'install',
         'name': 'package',
         'shortcut': 'p',
@@ -90,12 +111,7 @@ function createCLAParser(): $Clap.IParser {
     }).addOption({
         'path': 'install',
         'name': 'root-only',
-        'description': 'Install in the master package, for development usage only.'
-    }).addOption({
-        'path': 'uninstall',
-        'name': 'package',
-        'shortcut': 'p',
-        'description': 'Specify which package should be uninstalled from.'
+        'description': 'Install in the root package, for development usage only.'
     }).addOption({
         'path': 'install',
         'name': 'development',
@@ -107,6 +123,31 @@ function createCLAParser(): $Clap.IParser {
         'name': 'peer',
         'description': 'Install the peer dependencies.',
         'shortcut': 'P',
+        'arguments': 0
+    }).addOption({
+        'path': 'uninstall',
+        'name': 'package',
+        'shortcut': 'p',
+        'description': 'Specify which package should be uninstalled from.'
+    }).addOption({
+        'path': 'release',
+        'name': 'confirm',
+        'description': 'Confirmation of release. Otherwise, --dry-run will be used.',
+        'arguments': 0
+    }).addOption({
+        'path': 'release',
+        'name': 'breaking-changes',
+        'description': 'Create a new version with breaking changes.',
+        'arguments': 0
+    }).addOption({
+        'path': 'release',
+        'name': 'new-feature',
+        'description': 'Create a new version with new features.',
+        'arguments': 0
+    }).addOption({
+        'path': 'release',
+        'name': 'patch',
+        'description': 'Create a new version with patches.',
         'arguments': 0
     });
 
