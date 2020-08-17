@@ -1,4 +1,11 @@
 import * as C from '../Common';
+import * as $Logs from '@litert/logger';
+
+export type TLogLevel = 'debug1' | 'debug2' | 'debug3' | 'info' | 'error' | 'warning';
+
+export type ILogger = $Logs.ILogger<string, TLogLevel>;
+
+export const loggerFactory = $Logs.createFactory<TLogLevel>(['debug1', 'debug2', 'debug3', 'info', 'error', 'warning']);
 
 export interface IReleaseOptions {
 

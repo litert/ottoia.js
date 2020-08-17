@@ -33,11 +33,16 @@ const isTemplateFileList = tgc.compile<TemplateFileList>({
 
 class PackageUtils implements I.IPackageUtils {
 
-    public constructor(private readonly _fs: I.IFileUtils) {}
+    public constructor(
+        private readonly _logs: I.ILogger,
+        private readonly _fs: I.IFileUtils
+    ) {}
 
     public async readRoot(path: string): Promise<I.IRootPackage> {
 
         const ret = await this.read(path) as I.IRootPackage;
+
+        this._logs.debug1(`Loaded root package from "${path}".`);
 
         if (!ret.version || !ret.raw.ottoia) {
 
@@ -55,7 +60,7 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!isNodePackage(packageJson)) {
 
-            throw Error('invalid package');
+            throw new E.E_INVALID_PACKAGE({ metadata: { path } });
         }
 
         return {
@@ -95,6 +100,8 @@ class PackageUtils implements I.IPackageUtils {
         }
 
         if (await this._fs.existsDir(opts.templateFile)) {
+
+            this._logs.debug2(`Using package template at "${opts.templateFile}".`);
 
             opts.templateFile = this._fs.concatPath(opts.templateFile, './template.json');
         }
@@ -147,9 +154,14 @@ class PackageUtils implements I.IPackageUtils {
 
         const fullInFile = this._fs.concatPath(tplRoot, inputFile);
 
-        if (outputFile !== 'package.json') {
+        const [outRoot] = this._fs.extractPath(fullOutFile);
 
-            await this._fs.mkdirP(this._fs.extractPath(fullOutFile)[0]);
+        if (!await this._fs.existsDir(outRoot)) {
+
+            await this._fs.mkdirP(outRoot);
+        }
+
+        if (outputFile !== 'package.json') {
 
             await this._fs.copyFile(
                 fullInFile,
@@ -188,6 +200,8 @@ class PackageUtils implements I.IPackageUtils {
 
     private async _scan(root: string, stack: string[]): Promise<void> {
 
+        this._logs.debug3(`Scanning packages in "${root}".`);
+
         const items = await this._fs.readDir(root);
 
         for (const subItem of items) {
@@ -199,6 +213,7 @@ class PackageUtils implements I.IPackageUtils {
 
             if (await this._fs.existsFile(`${subItem}/package.json`)) {
 
+                this._logs.debug3(`Found package in "${subItem}".`);
                 stack.push(subItem);
             }
             else {
@@ -216,6 +231,8 @@ class PackageUtils implements I.IPackageUtils {
         curPkg.raw.dependencies = { ...pkg.dependencies };
         curPkg.raw.peerDependencies = { ...pkg.peerDependencies };
 
+        this._logs.debug3(`Saving package "${pkg.name}".`);
+
         await this._fs.writeFile(
             this._fs.concatPath(pkg.root, 'package.json'),
             JSON.stringify(curPkg.raw, null, 2)
@@ -225,7 +242,7 @@ class PackageUtils implements I.IPackageUtils {
     }
 }
 
-export function createPackageUtils(fs: I.IFileUtils): I.IPackageUtils {
+export function createPackageUtils(logger: I.ILogger, fs: I.IFileUtils): I.IPackageUtils {
 
-    return new PackageUtils(fs);
+    return new PackageUtils(logger, fs);
 }

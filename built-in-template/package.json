@@ -3,7 +3,10 @@
     "version": "0.1.0",
     "main": "index.js",
     "description": "",
-    "scripts": {},
+    "scripts": {
+        "ottoia:prepublish": "",
+        "ottoia:postpublish": ""
+    },
     "private": false,
     "dependencies": {},
     "devDependencies": {},

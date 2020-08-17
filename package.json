@@ -49,9 +49,10 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "@litert/clap": "^1.1.0",
+    "@litert/clap": "^1.2.0",
     "@litert/core": "^1.1.0",
     "@litert/http-client": "^1.0.0-dev-20200416",
+    "@litert/logger": "^1.1.3",
     "@litert/typeguard": "^1.0.1"
   },
   "os": [

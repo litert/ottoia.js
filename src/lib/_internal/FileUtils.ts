@@ -7,6 +7,10 @@ import * as $ChildProcess from 'child_process';
 
 class FileUtils implements I.IFileUtils {
 
+    private _cmdId = Date.now();
+
+    public constructor(private _logs: I.ILogger) {}
+
     private async _exec(cmd: string): Promise<string | L.IError> {
 
         return new Promise((resolve, reject) => {
@@ -25,13 +29,17 @@ class FileUtils implements I.IFileUtils {
 
     public async execAt(cwd: string, cmd: string, ...args: string[]): Promise<string> {
 
+        const CMD_ID = this._cmdId++;
+
         const oldCWD = process.cwd();
 
         const cmdline = [cmd, ...args].map((v) => v.includes(' ') ? `"${v}"` : v).join(' ');
 
-        console.log(`exec: ${cmdline}`);
+        this._logs.debug3(`Command[${CMD_ID}]: Created - ${cmdline}`);
 
         if (!await this.existsDir(cwd)) {
+
+            this._logs.debug3(`Command[${CMD_ID}]: CWD ${cwd} does not exist.`);
 
             throw new E.E_INVALID_PATH({ metadata: { path: cwd } });
         }
@@ -40,12 +48,18 @@ class FileUtils implements I.IFileUtils {
 
             process.chdir(cwd);
 
+            this._logs.debug3(`Command[${CMD_ID}]: CWD switched from "${oldCWD}" to "${cwd}".`);
+
             const result = await this._exec(cmdline);
 
             if (typeof result !== 'string') {
 
+                this._logs.debug3(`Command[${CMD_ID}]: ${result}.`);
+
                 throw result;
             }
+
+            this._logs.debug3(`Command[${CMD_ID}]: OK.`);
 
             return result;
         }
@@ -57,6 +71,8 @@ class FileUtils implements I.IFileUtils {
     }
 
     public async removeFile(path: string): Promise<void> {
+
+        this._logs.debug3(`Removing file "${path}".`);
 
         await $FS.unlink(path);
     }
@@ -75,15 +91,21 @@ class FileUtils implements I.IFileUtils {
 
     public async copyFile(src: string, dst: string): Promise<void> {
 
+        this._logs.debug3(`Copying "${src}" to "${dst}".`);
+
         await $FS.copyFile(src, dst);
     }
 
     public async writeFile(file: string, content: string): Promise<void> {
 
+        this._logs.debug3(`Writting to file "${file}".`);
+
         await $FS.writeFile(file, content);
     }
 
     public async readFile(file: string): Promise<string> {
+
+        this._logs.debug3(`Reading from file "${file}".`);
 
         return await $FS.readFile(file, {encoding: 'utf8'});
     }
@@ -103,6 +125,8 @@ class FileUtils implements I.IFileUtils {
     }
 
     public async mkdirP(path: string): Promise<void> {
+
+        this._logs.debug3(`Try creating directory "${path}".`);
 
         await $FS.mkdir(path, { recursive: true });
     }
@@ -159,6 +183,8 @@ class FileUtils implements I.IFileUtils {
 
     public async readDir(path: string): Promise<string[]> {
 
+        this._logs.debug3(`Reading directory "${path}".`);
+
         return (await $FS.readdir(path)).filter(
             (v) => v !== '.' && v !== '..'
         ).map(
@@ -167,7 +193,7 @@ class FileUtils implements I.IFileUtils {
     }
 }
 
-export function createFileUtility(): I.IFileUtils {
+export function createFileUtility(logs: I.ILogger): I.IFileUtils {
 
-    return new FileUtils();
+    return new FileUtils(logs);
 }

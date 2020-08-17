@@ -32,11 +32,38 @@ class OttoiaManager implements C.IManager {
 
     private _npm: I.INPMHelper;
 
-    public constructor(private _root: string) {
+    private _logs: I.ILogger;
 
-        this._fs = I.createFileUtility();
-        this._pkgUtils = I.createPackageUtils(this._fs);
-        this._npm = I.createNPMHelper(this._root, this._fs);
+    public constructor(private _root: string, verbose: number = 0) {
+
+        I.loggerFactory.unmute(['error', 'info', 'warning']);
+
+        switch (verbose) {
+            case 0: break;
+            default:
+            case 4: I.loggerFactory.enableTrace(10);
+            // eslint-disable-next-line no-fallthrough
+            case 3: I.loggerFactory.unmute('debug3');
+            // eslint-disable-next-line no-fallthrough
+            case 2: I.loggerFactory.unmute('debug2');
+            // eslint-disable-next-line no-fallthrough
+            case 1: I.loggerFactory.unmute('debug1'); break;
+        }
+
+        this._logs = I.loggerFactory.createTextLogger('manager');
+
+        this._fs = I.createFileUtility(I.loggerFactory.createTextLogger('fs'));
+
+        this._pkgUtils = I.createPackageUtils(
+            I.loggerFactory.createTextLogger('pkgutils'),
+            this._fs
+        );
+
+        this._npm = I.createNPMHelper(
+            I.loggerFactory.createTextLogger('npm'),
+            this._root,
+            this._fs
+        );
     }
 
     public async release(opts: C.IReleaseOptions): Promise<void> {
@@ -48,9 +75,11 @@ class OttoiaManager implements C.IManager {
             throw new E.E_RELEASE_CONFIG_NOT_FOUND({ metadata: { env: opts.env } });
         }
 
+        this._logs.debug1(`Release to tag "${cfg.tag}".`);
+
         if (!opts.confirmed) {
 
-            console.log(`Simulating releasing ${opts.env} version with "--dry-run"...`);
+            this._logs.warning(`Simulating releasing ${opts.env} version with "--dry-run"...`);
         }
 
         let version: string;
@@ -88,33 +117,21 @@ class OttoiaManager implements C.IManager {
             opts.withPatches
         );
 
-        console.log(`Releasing the ${opts.env} version "v${version}"...`);
+        this._logs.info(`Releasing the ${opts.env} version "v${version}"...`);
 
         try {
 
+            this._logs.debug1('Backing up the package.json...');
+
             await this._backupPackageJson();
+
+            this._logs.debug1('Setting up dependency versions...');
 
             await this._setupDependencies(version);
 
-            for (const pkgName in this._packages) {
+            this._logs.debug1('Preparing packages...');
 
-                const pkg = this._packages[pkgName];
-
-                if (pkg.noRelease) {
-
-                    continue;
-                }
-
-                this._npm.chdir(pkg.root);
-
-                console.log(`Preparing package "${pkgName}".`);
-
-                if (pkg.scripts['ottoia:prepublish']) {
-
-                    console.log('Executing ottoia hook "ottoia:prepublish".');
-                    await this._npm.run('ottoia:prepublish', []);
-                }
-            }
+            await this._preparePackage();
 
             for (const pkgName in this._packages) {
 
@@ -125,13 +142,15 @@ class OttoiaManager implements C.IManager {
                     continue;
                 }
 
-                console.log(`Publishing package "${pkgName}@${version}".`);
+                this._logs.warning(`Publishing package "${pkgName}@${version}".`);
 
                 this._npm.chdir(pkg.root);
 
                 const extArgs: string[] = [];
 
                 if (!opts.confirmed) {
+
+                    this._logs.debug1('Simulating with "--dry-run".');
 
                     extArgs.push('--dry-run');
                 }
@@ -147,11 +166,15 @@ class OttoiaManager implements C.IManager {
                 await this._npm.publish(extArgs);
             }
 
+            this._logs.debug1('Cleaning up packages.');
+
             for (const pkgName in this._packages) {
 
                 const pkg = this._packages[pkgName];
 
                 if (pkg.noRelease) {
+
+                    this._logs.debug1(`Skipped no-releasing package "${pkg.name}".`);
 
                     continue;
                 }
@@ -160,7 +183,7 @@ class OttoiaManager implements C.IManager {
 
                 if (pkg.scripts['ottoia:postpublish']) {
 
-                    console.log('Executing ottoia hook "ottoia:postpublish".');
+                    this._logs.debug2('Executing ottoia hook "ottoia:postpublish".');
                     await this._npm.run('ottoia:postpublish', []);
                 }
             }
@@ -170,6 +193,31 @@ class OttoiaManager implements C.IManager {
             this._npm.close();
 
             await this._cleanPackageJsonBackup();
+        }
+    }
+
+    private async _preparePackage(): Promise<void> {
+
+        for (const pkgName in this._packages) {
+
+            const pkg = this._packages[pkgName];
+
+            if (pkg.noRelease) {
+
+                this._logs.debug1(`Skipped no-releasing package "${pkg.name}".`);
+
+                continue;
+            }
+
+            this._npm.chdir(pkg.root);
+
+            this._logs.debug2(`Preparing package "${pkgName}".`);
+
+            if (pkg.scripts['ottoia:prepublish']) {
+
+                this._logs.debug2('Executing ottoia hook "ottoia:prepublish".');
+                await this._npm.run('ottoia:prepublish', []);
+            }
         }
     }
 
@@ -210,6 +258,7 @@ class OttoiaManager implements C.IManager {
 
             if (pkg.noRelease) {
 
+                this._logs.debug1(`Skipped no-releasing package "${pkg.name}".`);
                 continue;
             }
 
@@ -230,18 +279,20 @@ class OttoiaManager implements C.IManager {
             for (const depName in pkg.raw.dependencies) {
 
                 pkg.raw.dependencies[depName] = this._getDependencyVersion(depName, pkgName);
+                this._logs.debug3(`Use "${depName}@${pkg.raw.dependencies[depName]}" for package "${pkg.name}".`);
             }
 
             for (const depName in pkg.raw.peerDependencies) {
 
                 pkg.raw.peerDependencies[depName] = this._getDependencyVersion(depName, pkgName);
+                this._logs.debug3(`Use "${depName}@${pkg.raw.dependencies[depName]}" for package "${pkg.name}".`);
             }
 
             for (const hookName of NPM_HOOKS) {
 
                 if (pkg.raw.scripts?.[hookName]) {
 
-                    console.warn(`Ignored NPM built-in hook script "${hookName}".`);
+                    this._logs.debug2(`Ignored NPM built-in hook script "${hookName}".`);
                     delete pkg.raw.scripts?.[hookName];
                 }
             }
@@ -328,7 +379,7 @@ class OttoiaManager implements C.IManager {
 
             if (!pkg.scripts[cmd]) {
 
-                console.warn(`Command not found in package "${pkg.name}".`);
+                this._logs.warning(`Command not found in package "${pkg.name}".`);
                 continue;
             }
 
@@ -346,13 +397,20 @@ class OttoiaManager implements C.IManager {
 
         if (!await this._fs.existsFile(PATH_TO_ROOT_JSON)) {
 
+            this._logs.debug1(`The root package.json not found in "${this._root}".`);
+
             newJson = true;
 
             await this._npm.init();
         }
-        else if (!ensured) {
+        else {
 
-            throw new E.E_EXISTING_PACKAGE_JSON({ metadata: { path: PATH_TO_ROOT_JSON } });
+            this._logs.debug1(`Found package.json file "${PATH_TO_ROOT_JSON}".`);
+
+            if (!ensured) {
+
+                throw new E.E_EXISTING_PACKAGE_JSON({ metadata: { path: PATH_TO_ROOT_JSON } });
+            }
         }
 
         const rootJson = JSON.parse(await this._fs.readFile(PATH_TO_ROOT_JSON));
@@ -927,7 +985,7 @@ class OttoiaManager implements C.IManager {
     }
 }
 
-export function createManager(root: string): C.IManager {
+export function createManager(root: string, verbose?: number): C.IManager {
 
-    return new OttoiaManager(root);
+    return new OttoiaManager(root, verbose);
 }

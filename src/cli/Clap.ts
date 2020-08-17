@@ -149,6 +149,11 @@ function createCLAParser(): $Clap.IParser {
         'name': 'patch',
         'description': 'Create a new version with patches.',
         'arguments': 0
+    }).addOption({
+        'name': 'verbose',
+        'shortcut': 'v',
+        'description': 'Display debug logs.',
+        'arguments': 0
     });
 
     return parser;

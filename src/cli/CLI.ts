@@ -17,7 +17,10 @@ export default class OttoiaCLI {
             process.exit(0);
         }
 
-        this._ottoia = $Ottoia.createManager(this._cla.options.root?.[0] ?? process.cwd());
+        this._ottoia = $Ottoia.createManager(
+            this._cla.options.root?.[0] ?? process.cwd(),
+            this._cla.flags.verbose ?? undefined
+        );
     }
 
     public async main(): Promise<void> {

@@ -4,7 +4,6 @@ import OttoiaCLI from './CLI';
 
 new OttoiaCLI().main().catch((e) => {
 
-    console.error('EEEE');
     if (e?.toJSON) {
 
         console.error(e.toJSON());

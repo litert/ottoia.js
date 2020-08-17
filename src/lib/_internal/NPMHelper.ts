@@ -8,7 +8,11 @@ class NPMHelper implements I.INPMHelper {
 
     private _hCli = $Http.createHttpClient();
 
-    public constructor(private _cwd: string, private _fs: I.IFileUtils) { }
+    public constructor(
+        private readonly _logs: I.ILogger,
+        private _cwd: string,
+        private readonly _fs: I.IFileUtils
+    ) { }
 
     public chdir(cwd: string): void {
 
@@ -50,11 +54,13 @@ class NPMHelper implements I.INPMHelper {
 
         if (peer) {
 
+            this._logs.debug2('Installing peer dependencies...');
             dependencies.push('--peer');
         }
 
         if (dev) {
 
+            this._logs.debug2('Installing development dependencies...');
             dependencies.push('--save-dev');
         }
 
@@ -77,7 +83,7 @@ class NPMHelper implements I.INPMHelper {
 
             if (item.success) {
 
-                ret[names[i]] = item.result[0];
+                ret[names[i]] = item.result;
                 continue;
             }
 
@@ -124,6 +130,7 @@ class NPMHelper implements I.INPMHelper {
 
             if (hReq.statusCode === 404) {
 
+                this._logs.debug3(`Package "${pkgName}" is not published yet.`);
                 throw new E.E_PACKAGE_NOT_RELEASED({ metadata: { package: pkgName }  });
             }
 
@@ -134,10 +141,15 @@ class NPMHelper implements I.INPMHelper {
 
         if (data[tag]) {
 
+            this._logs.debug3(`Found package "${pkgName}@${data[tag]}".`);
             return data[tag];
         }
 
-        return Object.values(data).sort(comparer).reverse()[0];
+        const ret = Object.values(data).sort(comparer).reverse()[0];
+
+        this._logs.debug3(`Found package "${pkgName}@${ret}".`);
+
+        return ret;
     }
 
     public async uninstall(dependencies: string[], peer?: boolean, dev?: boolean): Promise<void> {
@@ -192,7 +204,7 @@ class NPMHelper implements I.INPMHelper {
     }
 }
 
-export function createNPMHelper(cwd: string, fs: I.IFileUtils): I.INPMHelper {
+export function createNPMHelper(logs: I.ILogger, cwd: string, fs: I.IFileUtils): I.INPMHelper {
 
-    return new NPMHelper(cwd, fs);
+    return new NPMHelper(logs, cwd, fs);
 }
