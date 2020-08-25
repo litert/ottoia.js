@@ -35,7 +35,8 @@ function createCLAParser(): $Clap.IParser {
         description: 'Run a command defined in root package.json.',
         minArguments: 1
     }).addCommand({
-        name: 'init',
+        name: 'initialize',
+        aliases: ['init'],
         description: 'Create or initialized the package.json in the project root.'
     }).addCommand({
         name: 'clean',
@@ -52,7 +53,7 @@ function createCLAParser(): $Clap.IParser {
         'shortcut': 't',
         'arguments': 1
     }).addOption({
-        'path': 'init',
+        'path': 'initialize',
         'name': 'yes',
         'description': 'Ensure to update the existing package.json.',
         'shortcut': 'y',

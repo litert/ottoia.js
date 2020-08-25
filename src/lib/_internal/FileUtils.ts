@@ -48,7 +48,9 @@ class FileUtils implements I.IFileUtils {
 
             process.chdir(cwd);
 
-            this._logs.debug3(`Command[${CMD_ID}]: CWD switched from "${oldCWD}" to "${cwd}".`);
+            this._logs.debug3(`Command[${CMD_ID}]: Using CWD "${cwd}".`);
+
+            this._logs.debug3(`Command[${CMD_ID}]: Executing...`);
 
             const result = await this._exec(cmdline);
 
@@ -62,6 +64,12 @@ class FileUtils implements I.IFileUtils {
             this._logs.debug3(`Command[${CMD_ID}]: OK.`);
 
             return result;
+        }
+        catch (e) {
+
+            this._logs.debug3(`Command[${CMD_ID}]: Failed.`);
+
+            throw e;
         }
         finally {
 

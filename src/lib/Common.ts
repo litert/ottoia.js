@@ -37,7 +37,13 @@ export type IVersionComparer = (a: string, b: string) => number;
 
 export interface IManager {
 
-    run(pkgs: string[], cmd: string, args: string[]): Promise<void>;
+    runCommand(
+        pkgs: string[],
+        cmd: string,
+        args: string[],
+        allowRoot?: boolean,
+        rootOnly?: boolean
+    ): Promise<void>;
 
     initialize(ensured?: boolean): Promise<void>;
 

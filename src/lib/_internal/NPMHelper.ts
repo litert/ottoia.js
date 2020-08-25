@@ -120,10 +120,9 @@ class NPMHelper implements I.INPMHelper {
     ): Promise<string> {
 
         const hReq = await this._hCli.request({
-            url: `https://registry.npmjs.com/${pkgName}`,
-            method: 'GET',
-            'gzip': false,
-            version: 1.1
+            'url': `https://registry.npmjs.com/${pkgName}`,
+            'method': 'GET',
+            'gzip': false
         });
 
         if (hReq.statusCode !== 200) {
@@ -145,11 +144,11 @@ class NPMHelper implements I.INPMHelper {
             return data[tag];
         }
 
-        const ret = Object.values(data).sort(comparer).reverse()[0];
+        const ret = Object.entries(data).sort((a, b) => comparer(a[1], b[1])).reverse()[0];
 
-        this._logs.debug3(`Found package "${pkgName}@${ret}".`);
+        this._logs.debug3(`Found and select package "${pkgName}@${ret[0]}:v${ret[1]}".`);
 
-        return ret;
+        return ret[1];
     }
 
     public async uninstall(dependencies: string[], peer?: boolean, dev?: boolean): Promise<void> {

@@ -25,7 +25,7 @@ export default class OttoiaCLI {
 
     public async main(): Promise<void> {
 
-        if (this._cla.commands[0].name !== 'init') {
+        if (this._cla.commands[0].name !== 'initialize') {
 
             await this._ottoia.ensureRootPackagePath();
 
@@ -33,7 +33,7 @@ export default class OttoiaCLI {
         }
 
         switch (this._cla.commands[0].name) {
-            case 'init': {
+            case 'initialize': {
                 await this._ottoia.initialize(!!this._cla.commands[0].flags['yes']);
                 break;
             }
@@ -46,10 +46,13 @@ export default class OttoiaCLI {
                 break;
             }
             case 'run': {
-                await this._ottoia.run(
+                console.log(this._cla.flags);
+                await this._ottoia.runCommand(
                     this._cla.commands[0].options.package ?? [],
                     this._cla.arguments[0],
                     this._cla.arguments.slice(1),
+                    !!(this._cla.flags['root-only'] || this._cla.flags['root']),
+                    !!this._cla.flags['root-only']
                 );
                 break;
             }

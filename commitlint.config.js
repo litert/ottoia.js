@@ -21,6 +21,7 @@ module.exports = {
             'cmd:release',
             'cmd:show',
             'skeleton',
+            'log',
             'internal',
             'doc',
             'lint',

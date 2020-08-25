@@ -123,7 +123,7 @@ class OttoiaManager implements C.IManager {
 
             this._logs.debug1('Backing up the package.json...');
 
-            await this._backupPackageJson();
+            await this._createPackageJsonBackup();
 
             this._logs.debug1('Setting up dependency versions...');
 
@@ -191,6 +191,8 @@ class OttoiaManager implements C.IManager {
         finally {
 
             this._npm.close();
+
+            await this._recoverPackageJsonFromBackup();
 
             await this._cleanPackageJsonBackup();
         }
@@ -304,7 +306,9 @@ class OttoiaManager implements C.IManager {
         }
     }
 
-    private async _backupPackageJson(): Promise<void> {
+    private async _createPackageJsonBackup(): Promise<void> {
+
+        this._logs.debug2('Create a backup of all package.json files...');
 
         const tmpPath = this._fs.concatPath(this._root, '.ottoia/tmp/packages.d');
 
@@ -327,6 +331,39 @@ class OttoiaManager implements C.IManager {
     }
 
     private async _cleanPackageJsonBackup(): Promise<void> {
+
+        this._logs.debug2('Cleaning up the backup of all package.json files...');
+
+        const tmpPath = this._fs.concatPath(this._root, '.ottoia/tmp/packages.d');
+
+        if (!await this._fs.existsDir(tmpPath)) {
+
+            return;
+        }
+
+        for (const pkgName in this._packages) {
+
+            const pkg = this._packages[pkgName];
+
+            if (pkg.noRelease) {
+
+                continue;
+            }
+
+            const bakFile = this._fs.concatPath(tmpPath, pkg.name.replace(/\//g, '-') + '.json');
+
+            if (!await this._fs.existsFile(bakFile)) {
+
+                continue;
+            }
+
+            await this._fs.removeFile(bakFile);
+        }
+    }
+
+    private async _recoverPackageJsonFromBackup(): Promise<void> {
+
+        this._logs.debug2('Recovering all package.json files from the backup...');
 
         const tmpPath = this._fs.concatPath(this._root, '.ottoia/tmp/packages.d');
 
@@ -355,12 +392,16 @@ class OttoiaManager implements C.IManager {
                 bakFile,
                 this._fs.concatPath(pkg.root, 'package.json')
             );
-
-            await this._fs.removeFile(bakFile);
         }
     }
 
-    public async run(pkgs: string[], cmd: string, args: string[]): Promise<void> {
+    public async runCommand(
+        pkgs: string[],
+        cmd: string,
+        args: string[],
+        allowRoot: boolean = false,
+        rootOnly: boolean = false
+    ): Promise<void> {
 
         pkgs = pkgs.map((v) => v.toLowerCase());
 
@@ -373,17 +414,31 @@ class OttoiaManager implements C.IManager {
             pkgs = Object.keys(this._packages);
         }
 
-        for (const pkgName of pkgs) {
+        if (!rootOnly) {
 
-            const pkg = this._getPackage(pkgName, false);
+            for (const pkgName of pkgs) {
 
-            if (!pkg.scripts[cmd]) {
+                const pkg = this._getPackage(pkgName, false);
 
-                this._logs.warning(`Command not found in package "${pkg.name}".`);
-                continue;
+                if (!pkg.scripts[cmd]) {
+
+                    this._logs.warning(`Command "${cmd}" not found in package "${pkg.name}".`);
+                    continue;
+                }
+
+                this._logs.debug1(`Executing NPM command "${cmd}" for sub package "${pkg.name}"...`);
+
+                this._npm.chdir(pkg.root);
+
+                console.log(await this._npm.run(cmd, args));
             }
+        }
 
-            this._npm.chdir(pkg.root);
+        if (allowRoot) {
+
+            this._npm.chdir(this._root);
+
+            this._logs.debug1(`Executing NPM command "${cmd}" for root package...`);
 
             console.log(await this._npm.run(cmd, args));
         }
@@ -451,9 +506,15 @@ class OttoiaManager implements C.IManager {
             };
         }
 
+        this._logs.debug1('Writing package.json file...');
+
         await this._fs.writeFile(PATH_TO_ROOT_JSON, JSON.stringify(rootJson, null, 2));
 
+        this._logs.debug1('Initializing packages root...');
+
         await this._fs.mkdirP(this._fs.concatPath(this._root, 'packages'));
+
+        this._logs.debug1('Initializing git ignore settings...');
 
         const GIT_IGNORE_PATH = this._fs.concatPath(this._root, '.gitignore');
 
@@ -461,6 +522,8 @@ class OttoiaManager implements C.IManager {
 
             const GIT_IGNORE_CONTENT = await this._fs.readFile(GIT_IGNORE_PATH);
             if (!GIT_IGNORE_CONTENT.includes('.ottoia')) {
+
+                this._logs.debug1('Setting up ottoia for current package...');
 
                 await this._fs.writeFile(
                     GIT_IGNORE_PATH,
@@ -478,8 +541,11 @@ class OttoiaManager implements C.IManager {
 
             try {
 
+                this._logs.debug1(`Try detecting package.json in "${curPath}"...`);
+
                 this._rootPackage = await this._pkgUtils.readRoot(curPath);
 
+                this._logs.debug1(`Detected package.json in "${curPath}"...`);
                 this._root = curPath;
                 break;
             }
@@ -510,9 +576,14 @@ class OttoiaManager implements C.IManager {
 
         try {
 
+            this._logs.debug1(`Scanning possible packages in path "${this._pkgRoot}"...`);
+
             pkgPathList = await this._pkgUtils.scan(this._pkgRoot);
+
         }
         catch {
+
+            this._logs.debug1(`Failed to scan packages in "${this._pkgRoot}".`);
 
             pkgPathList = [];
         }
@@ -521,7 +592,11 @@ class OttoiaManager implements C.IManager {
 
             try {
 
+                this._logs.debug1(`Loading package in "${p}"...`);
+
                 const pkg = await this._pkgUtils.read(p);
+
+                this._logs.debug1(`Successfully loaded package "${pkg.name}" in "${p}"...`);
 
                 this._depCounters.add(pkg.name, this._extractDeps(pkg, false));
 
@@ -590,8 +665,11 @@ class OttoiaManager implements C.IManager {
 
             nameOrAlias = nameOrAlias.slice(2);
 
+            this._logs.debug2(`Try using package alias "${nameOrAlias}"...`);
+
             if (!this._aliases[nameOrAlias]) {
 
+                this._logs.debug2(`No package was found by alias "${nameOrAlias}".`);
                 if (!assert) {
 
                     return this._packages['?'];
@@ -603,10 +681,16 @@ class OttoiaManager implements C.IManager {
             nameOrAlias = this._aliases[nameOrAlias];
         }
 
+        this._logs.debug2(`Try using package name "${nameOrAlias}"...`);
+
         if (assert && !this._packages[nameOrAlias]) {
+
+            this._logs.debug2(`Package "${nameOrAlias}" does not exist.`);
 
             throw new E.E_PACKAGE_NOT_FOUND({ metadata: { name: nameOrAlias } });
         }
+
+        this._logs.debug2(`Fetched package "${nameOrAlias}".`);
 
         return this._packages[nameOrAlias];
     }
@@ -622,14 +706,22 @@ class OttoiaManager implements C.IManager {
 
         name = name.toLowerCase();
 
+        this._pkgUtils.validatePackageName(name);
+
+        this._logs.debug1(`Try creating sub package "${name}"...`);
+
         aliasName = aliasName?.toLowerCase();
 
         if (this._packages[name]) {
 
-            throw new E.E_INVALID_PACKAGE({ metadata: { name } });
+            this._logs.debug1(`Sub package "${name}" already exists.`);
+
+            throw new E.E_DUP_PACKAGE({ metadata: { name } });
         }
 
         if (aliasName && this._aliases[aliasName]) {
+
+            this._logs.debug1(`Alias "${aliasName}" of sub package "${name}" already exists.`);
 
             throw new E.E_DUP_PACKAGE_ALIAS({
                 metadata: {
@@ -650,6 +742,8 @@ class OttoiaManager implements C.IManager {
             alias: aliasName
         });
 
+        this._logs.debug1(`Successfully created sub package "${name}".`);
+
         this._packages[name] = pkg;
     }
 
@@ -665,7 +759,7 @@ class OttoiaManager implements C.IManager {
 
     public async install(
         deps: string[],
-        pkgs: string[],
+        pkgNames: string[],
         isPeer: boolean = false,
         isDev: boolean = false,
         depPath: string[] = [],
@@ -674,121 +768,186 @@ class OttoiaManager implements C.IManager {
     ): Promise<void> {
 
         deps = deps.map((v) => v.toLowerCase());
-        pkgs = pkgs.map((v) => v.toLowerCase());
 
-        if (pkgs.length) {
+        if (!deps.length) {
 
-            this._checkPackages(pkgs);
+            return;
+        }
+
+        pkgNames = pkgNames.map((v) => v.toLowerCase());
+
+        if (!noSave) {
+
+            await this._createPackageJsonBackup();
+        }
+
+        if (pkgNames.length) {
+
+            this._logs.debug1('Installing to determined sub packages...');
+            this._checkPackages(pkgNames);
         }
         else {
 
-            pkgs = Object.keys(this._packages);
+            this._logs.debug1('Installing to all sub packages...');
+            pkgNames = Object.keys(this._packages);
         }
 
-        const REMOTE_DEPS = deps.filter((v) => !this._getPackage(v, false));
+        const pkgs: Record<string, I.IPackage> = {};
+
+        for (const p of pkgNames) {
+
+            pkgs[p] = this._getPackage(p, true);
+        }
+
+        const REMOTE_DEPS = deps.filter((v) => this._pkgUtils.isValidDependencyName(v) && !this._getPackage(v, false));
         const LOCAL_DEPS = deps.filter((v) => !!this._getPackage(v, false));
+
+        if (REMOTE_DEPS.length + LOCAL_DEPS.length !== deps.length) {
+
+            throw new E.E_INVALID_PACKAGE_NAME({
+                metadata: { deps: deps.filter((v) => !REMOTE_DEPS.includes(v) && !LOCAL_DEPS.includes(v)) }
+            });
+        }
 
         this._npm.chdir(this._root);
 
-        await this._npm.install(REMOTE_DEPS);
+        try {
 
-        for (const depName of REMOTE_DEPS) {
+            if (REMOTE_DEPS.length) {
 
-            for (const pkgName of pkgs) {
+                this._logs.debug1(`Installing ${REMOTE_DEPS.length} remote dependencies...`);
 
-                const pkg = this._getPackage(pkgName, true);
+                await this._npm.install(REMOTE_DEPS);
 
-                delete pkg.peerDependencies[depName];
-                delete pkg.devDependencies[depName];
-                delete pkg.dependencies[depName];
+                for (const depName of REMOTE_DEPS) {
 
-                /**
-                 * If --development is specified, only root package.json will be written in.
-                 */
-                if (!isDev) {
+                    for (const pkgName of pkgNames) {
 
-                    if (isPeer) {
+                        const pkg = pkgs[pkgName];
 
-                        pkg.peerDependencies[depName] = DEP_VER_PLACE_HOLDER;
-                    }
-                    else  {
+                        this._logs.debug1(`Installed "${depName}" to sub package "${pkg.name}".`);
 
-                        pkg.dependencies[depName] = DEP_VER_PLACE_HOLDER;
+                        delete pkg.peerDependencies[depName];
+                        delete pkg.devDependencies[depName];
+                        delete pkg.dependencies[depName];
+
+                        /**
+                         * If --development is specified, only root package.json will be written in.
+                         */
+                        if (!isDev) {
+
+                            if (isPeer) {
+
+                                pkg.peerDependencies[depName] = DEP_VER_PLACE_HOLDER;
+                            }
+                            else  {
+
+                                pkg.dependencies[depName] = DEP_VER_PLACE_HOLDER;
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        for (const depName of LOCAL_DEPS) {
+            if (LOCAL_DEPS.length) {
 
-            const dep = this._getPackage(depName, true);
+                this._logs.debug1(`Installing ${LOCAL_DEPS.length} local dependencies...`);
 
-            for (const pkgName of pkgs) {
+                for (const depName of LOCAL_DEPS) {
 
-                const pkg = this._getPackage(pkgName, true);
+                    const dep = this._getPackage(depName, true);
 
-                if (dep.name === pkg.name) {
+                    for (const pkgName of pkgNames) {
 
-                    continue;
-                }
+                        const pkg = pkgs[pkgName];
 
-                if (
-                    dep.dependencies[pkg.name]
-                    || dep.devDependencies[pkg.name]
-                    || dep.peerDependencies[pkg.name]
-                    || depPath.includes(dep.name)
-                ) {
+                        if (dep.name === pkg.name) {
 
-                    throw new E.E_RECURSIVE_DEP({ metadata: { package: pkg.name, dependency: dep.name } });
-                }
+                            this._logs.debug1(`Not installed "${depName}" to itself.`);
+                            continue;
+                        }
 
-                if (!noSave) {
+                        this._logs.debug1(`Installed "${depName}" to sub package "${pkg.name}".`);
 
-                    delete pkg.devDependencies[dep.name];
-                    delete pkg.dependencies[dep.name];
-                    delete pkg.peerDependencies[dep.name];
+                        if (
+                            dep.dependencies[pkg.name]
+                            || dep.devDependencies[pkg.name]
+                            || dep.peerDependencies[pkg.name]
+                            || depPath.includes(dep.name)
+                        ) {
 
-                    if (isPeer) {
+                            throw new E.E_RECURSIVE_DEP({ metadata: { package: pkg.name, dependency: dep.name } });
+                        }
 
-                        pkg.peerDependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                        if (!noSave) {
+
+                            delete pkg.devDependencies[dep.name];
+                            delete pkg.dependencies[dep.name];
+                            delete pkg.peerDependencies[dep.name];
+
+                            if (isPeer) {
+
+                                pkg.peerDependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                            }
+                            else if (isDev) {
+
+                                pkg.devDependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                            }
+                            else {
+
+                                pkg.dependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                            }
+                        }
+
+                        this._npm.chdir(pkg.root);
+
+                        /**
+                         * Install the indirected dependencies of the new installed dependencies.
+                         */
+                        const indirectLocalDeps = this._extractLocalDeps(dep, true);
+
+                        if (indirectLocalDeps.length) {
+
+                            this._logs.debug1(`Installing indirect local dependencies of "${dep.name}" to sub package "${pkg.name}".`);
+
+                            await this.install(indirectLocalDeps, [pkg.name], false, false, [...depPath, pkg.name], true, true);
+                        }
+
+                        await this._npm.link(dep.name, dep.root);
                     }
-                    else if (isDev) {
-
-                        pkg.devDependencies[dep.name] = DEP_VER_PLACE_HOLDER;
-                    }
-                    else {
-
-                        pkg.dependencies[dep.name] = DEP_VER_PLACE_HOLDER;
-                    }
                 }
+            }
 
-                this._npm.chdir(pkg.root);
+            for (const pkgName of pkgNames) {
 
-                /**
-                 * Install the indirected dependencies of the new installed dependencies.
-                 */
-                const indirectLocalDeps = this._extractLocalDeps(dep, true);
+                await this._pkgUtils.save(this._getPackage(pkgName, true));
+            }
 
-                if (indirectLocalDeps.length) {
+            /**
+             * Install the new local dependencies for dependents.
+             */
+            if (LOCAL_DEPS.length && !noBootStrap) {
 
-                    await this.install(indirectLocalDeps, [pkg.name], false, false, [...depPath, pkg.name], true, noBootStrap);
-                }
-
-                await this._npm.link(dep.name, dep.root);
+                await this._bootstrapLocal();
             }
         }
+        catch (e) {
 
-        for (const pkgName of pkgs) {
+            this._logs.debug1('Failed to install dependencies.');
 
-            await this._pkgUtils.save(this._getPackage(pkgName, true));
+            if (!noSave) {
+
+                await this._recoverPackageJsonFromBackup();
+            }
+
+            throw e;
         }
+        finally {
 
-        /**
-         * Install the new local dependencies for dependents.
-         */
-        if (LOCAL_DEPS.length && !noBootStrap) {
+            if (!noSave) {
 
-            await this._bootstrapLocal();
+                await this._cleanPackageJsonBackup();
+            }
         }
     }
 
@@ -799,6 +958,8 @@ class OttoiaManager implements C.IManager {
             for (const pkgName of pkgs) {
 
                 const pkg = this._getPackage(pkgName, true);
+
+                this._logs.debug1(`Uninstalled remote dependency "${depName}" from "${pkg.name}".`);
 
                 delete pkg.devDependencies[depName];
                 delete pkg.dependencies[depName];
@@ -842,6 +1003,8 @@ class OttoiaManager implements C.IManager {
                     continue;
                 }
 
+                this._logs.debug1(`Uninstalled local dependency "${dep.name}" from "${pkg.name}".`);
+
                 delete pkg.devDependencies[dep.name];
                 delete pkg.dependencies[dep.name];
                 delete pkg.peerDependencies[dep.name];
@@ -873,8 +1036,15 @@ class OttoiaManager implements C.IManager {
         /**
          * Only the explicit dependencies should be uninstalled.
          */
-        const remoteDeps = deps.filter((v) => !this._getPackage(v, false)).filter((v) => !!explicitDepRefs[v]);
-        const localDeps = deps.map((v) => this._getPackage(v, false)?.name).filter((v) => v && !!explicitDepRefs[v]);
+        const REMOTE_DEPS = deps.filter((v) => this._pkgUtils.isValidDependencyName(v) && !this._getPackage(v, false)).filter((v) => !!explicitDepRefs[v]);
+        const LOCAL_DEPS = deps.map((v) => this._getPackage(v, false)?.name).filter((v) => v && !!explicitDepRefs[v]);
+
+        if (REMOTE_DEPS.length + LOCAL_DEPS.length !== deps.length) {
+
+            throw new E.E_INVALID_PACKAGE_NAME({
+                metadata: { deps: deps.filter((v) => !REMOTE_DEPS.includes(v) && !LOCAL_DEPS.includes(v)) }
+            });
+        }
 
         pkgs = pkgs.map((v) => this._getPackage(v, true).name);
 
@@ -887,13 +1057,30 @@ class OttoiaManager implements C.IManager {
             pkgs = Object.keys(this._packages);
         }
 
-        await this._uninstallRemoteDeps(remoteDeps, pkgs);
+        await this._createPackageJsonBackup();
 
-        await this._uninstallLocalDeps(localDeps, pkgs);
+        try {
 
-        for (const p of pkgs) {
+            await this._uninstallRemoteDeps(REMOTE_DEPS, pkgs);
 
-            await this._pkgUtils.save(this._getPackage(p, false));
+            await this._uninstallLocalDeps(LOCAL_DEPS, pkgs);
+
+            for (const p of pkgs) {
+
+                await this._pkgUtils.save(this._getPackage(p, false));
+            }
+        }
+        catch (e) {
+
+            this._logs.debug1('Failed to uninstall dependencies.');
+
+            await this._recoverPackageJsonFromBackup();
+
+            throw e;
+        }
+        finally {
+
+            await this._cleanPackageJsonBackup();
         }
     }
 
@@ -925,12 +1112,23 @@ class OttoiaManager implements C.IManager {
 
             if (pkg.scripts['clean']) {
 
+                this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
                 this._npm.chdir(pkg.root);
 
                 await this._npm.run('clean', []);
             }
 
+            if (pkg.scripts['ottoia:clean']) {
+
+                this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
+                this._npm.chdir(pkg.root);
+
+                await this._npm.run('ottoia:clean', []);
+            }
+
             if (full) {
+
+                this._logs.debug1(`Removing "node_modules" for sub package "${pkg.name}"...`);
 
                 await this._fs.execAt(pkg.root, 'rm', '-rf', 'node_modules');
             }
@@ -940,10 +1138,14 @@ class OttoiaManager implements C.IManager {
 
             this._npm.chdir(this._root);
 
+            this._logs.debug1('Executing NPM script "ottoia:clean" for root package...');
+
             await this._npm.run('ottoia:clean', []);
         }
 
         if (full) {
+
+            this._logs.debug1('Removing "node_modules" for root package...');
 
             await this._fs.execAt(this._root, 'rm', '-rf', 'node_modules');
         }
@@ -963,6 +1165,8 @@ class OttoiaManager implements C.IManager {
         for (const pkgName in this._packages) {
 
             const pkg = this._packages[pkgName];
+
+            this._logs.debug2(`Bootstrap sub package "${pkg.name}"...`);
 
             await this.install(this._extractLocalDeps(pkg, false), [pkg.name], false, false, [], true, true);
         }

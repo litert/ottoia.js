@@ -5,7 +5,8 @@
     "description": "",
     "scripts": {
         "ottoia:prepublish": "",
-        "ottoia:postpublish": ""
+        "ottoia:postpublish": "",
+        "ottoia:clean": ""
     },
     "private": false,
     "dependencies": {},

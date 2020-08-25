@@ -149,6 +149,14 @@ export interface IPackageOptions {
 
 export interface IPackageUtils {
 
+    isValidPackageName(name: string): boolean;
+
+    isValidDependencyName(name: string): boolean;
+
+    validateDependencyName(name: string): void;
+
+    validatePackageName(name: string): void;
+
     save(pkg: IPackage): Promise<IPackage>;
 
     create(opts?: IPackageOptions): Promise<IPackage>;

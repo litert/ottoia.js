@@ -1,6 +1,7 @@
 import * as E from '../Errors';
 import * as I from './Internal';
 import * as $TyG from '@litert/typeguard';
+import * as validateNPMPackageName from 'validate-npm-package-name';
 
 type TemplateFileList = Array<string | [string, string]>;
 
@@ -38,11 +39,37 @@ class PackageUtils implements I.IPackageUtils {
         private readonly _fs: I.IFileUtils
     ) {}
 
+    public isValidPackageName(name: string): boolean {
+
+        return validateNPMPackageName(name).validForNewPackages;
+    }
+
+    public isValidDependencyName(name: string): boolean {
+
+        return validateNPMPackageName(name).validForOldPackages;
+    }
+
+    public validatePackageName(name: string): void {
+
+        if (!this.isValidPackageName(name)) {
+
+            throw new E.E_INVALID_PACKAGE_NAME({ metadata: { name } });
+        }
+    }
+
+    public validateDependencyName(name: string): void {
+
+        if (!this.isValidDependencyName(name)) {
+
+            throw new E.E_INVALID_PACKAGE_NAME({ metadata: { name } });
+        }
+    }
+
     public async readRoot(path: string): Promise<I.IRootPackage> {
 
         const ret = await this.read(path) as I.IRootPackage;
 
-        this._logs.debug1(`Loaded root package from "${path}".`);
+        this._logs.debug2(`Loaded root package from "${path}".`);
 
         if (!ret.version || !ret.raw.ottoia) {
 
@@ -66,7 +93,7 @@ class PackageUtils implements I.IPackageUtils {
         return {
             'root': path,
             'name': packageJson.name.toLowerCase(),
-            'alias': packageJson['ottoia:alias'],
+            'alias': packageJson['ottoia:alias']?.toLowerCase(),
             'version': packageJson.version,
             'noRelease': !!packageJson.private,
             'privateAccess': packageJson.access !== 'public',
