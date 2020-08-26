@@ -7,3 +7,5 @@
 /tsconfig.json
 /docs/
 /.eslintrc
+/.eslintignore
+/commitlint.config.js
