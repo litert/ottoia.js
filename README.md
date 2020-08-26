@@ -10,7 +10,7 @@ A simple multi-repository package manager of node.
 ## Installation
 
 ```sh
-npm install @litert/ottoia -D
+npm install @litert/ottoia -g
 ```
 
 ## Requirements
