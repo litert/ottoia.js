@@ -4,6 +4,7 @@
 
 - fix(cmd:install): did not save development dependencies to devDependencies.
 - fix(internal): error while reading omitted deps fields.
+- fix(internal): error while installing deps with tag.
 - feat(cmd:release): execute "ottoia:clean" before publish.
 - feat(cmd:release): added "--version" option to specify the target version.
 - feat(cmd:release): added hook "ottoia:prepare" between "ottoia:prepublish" and "npm publish".

@@ -44,9 +44,11 @@ class PackageUtils implements I.IPackageUtils {
         return validateNPMPackageName(name).validForNewPackages;
     }
 
-    public isValidDependencyName(name: string): boolean {
+    public isValidDependencyName(expr: string): boolean {
 
-        return validateNPMPackageName(name).validForOldPackages;
+        const [name, tag] = expr.split(/(?!^)@/, 2);
+
+        return validateNPMPackageName(name).validForOldPackages && /^[a-z0-9]+$/.test(tag);
     }
 
     public validatePackageName(name: string): void {
