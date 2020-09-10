@@ -58,6 +58,7 @@ export default class OttoiaCLI {
             }
             case 'release': {
                 await this._ottoia.release({
+                    version: this._cla.commands[0].options['version']?.[0]!,
                     env: this._cla.arguments[0],
                     withBreakingChanges: !!this._cla.commands[0].flags['breaking-changes'],
                     withNewFeatures: !!this._cla.commands[0].flags['new-feature'],

@@ -143,8 +143,14 @@ function createCLAParser(): $Clap.IParser {
     }).addOption({
         'path': 'release',
         'name': 'new-feature',
+        'shortcut': 'V',
         'description': 'Create a new version with new features.',
         'arguments': 0
+    }).addOption({
+        'path': 'release',
+        'name': 'version',
+        'description': 'Specify the new version.',
+        'arguments': 1
     }).addOption({
         'path': 'release',
         'name': 'patch',
@@ -175,7 +181,7 @@ export default function parseCLA(): $Clap.IResult | null {
 
         const result = clap.parse(process.argv.slice(2));
 
-        if (result.help) {
+        if (!result.commands.length || result.help) {
 
             printHelp(clap, result.help);
             return null;

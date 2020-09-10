@@ -82,40 +82,47 @@ class OttoiaManager implements C.IManager {
             this._logs.warning(`Simulating releasing ${opts.env} version with "--dry-run"...`);
         }
 
-        let version: string;
+        let version: string = opts.version;
 
-        const pkgVersions = await this._npm.getCurrentVersionSet(
-            Object.keys(this._packages),
-            I.builtInCmpSemVersion,
-            cfg.tag
-        );
+        if (!version) {
 
-        if (Object.keys(pkgVersions).length) {
+            const pkgVersions = await this._npm.getCurrentVersionSet(
+                Object.keys(this._packages),
+                I.builtInCmpSemVersion,
+                cfg.tag
+            );
 
-            /**
-             * Use the newest one if any package exists.
-             */
-            version = Object.values(pkgVersions).sort(I.builtInCmpSemVersion).pop() as string;
+            if (Object.keys(pkgVersions).length) {
+
+                /**
+                 * Use the newest one if any package exists.
+                 */
+                version = Object.values(pkgVersions).sort(I.builtInCmpSemVersion).pop() as string;
+            }
+            else {
+
+                /**
+                 * Use a new version if none of package exists
+                 */
+                version = this._rootPackage.version;
+            }
+
+            const versioner = cfg.versioner ?
+                require(this._fs.concatPath(this._root, cfg.versioner)).default as C.IVersionNamer :
+                I.createBuiltInVersionNamer();
+
+            version = versioner.next(
+                version,
+                opts.env,
+                opts.withBreakingChanges,
+                opts.withNewFeatures,
+                opts.withPatches
+            );
         }
-        else {
 
-            /**
-             * Use a new version if none of package exists
-             */
-            version = '0.0.0';
-        }
+        this._npm.chdir(this._root);
 
-        const versioner = cfg.versioner ?
-            require(this._fs.concatPath(this._root, cfg.versioner)).default as C.IVersionNamer :
-            I.createBuiltInVersionNamer();
-
-        version = versioner.next(
-            version,
-            opts.env,
-            opts.withBreakingChanges,
-            opts.withNewFeatures,
-            opts.withPatches
-        );
+        this._rootPackage.version = version;
 
         this._logs.info(`Releasing the ${opts.env} version "v${version}"...`);
 
@@ -142,7 +149,7 @@ class OttoiaManager implements C.IManager {
                     continue;
                 }
 
-                this._logs.warning(`Publishing package "${pkgName}@${version}".`);
+                this._logs.info(`Publishing package "${pkgName}@${version}".`);
 
                 this._npm.chdir(pkg.root);
 
@@ -156,9 +163,9 @@ class OttoiaManager implements C.IManager {
                 }
 
                 /**
-                 * For the first release of this public package.
+                 * For the public package.
                  */
-                if (!pkgVersions[pkgName] && !pkg.privateAccess) {
+                if (!pkg.privateAccess) {
 
                     extArgs.push('--access=public');
                 }
@@ -200,6 +207,15 @@ class OttoiaManager implements C.IManager {
 
     private async _preparePackage(): Promise<void> {
 
+        this._npm.chdir(this._root);
+
+        await this._clean(this._rootPackage, false);
+
+        if (this._rootPackage.scripts['ottoia:prepublish']) {
+
+            await this._npm.run('ottoia:prepublish', []);
+        }
+
         for (const pkgName in this._packages) {
 
             const pkg = this._packages[pkgName];
@@ -213,6 +229,8 @@ class OttoiaManager implements C.IManager {
 
             this._npm.chdir(pkg.root);
 
+            await this._clean(pkg, false);
+
             this._logs.debug2(`Preparing package "${pkgName}".`);
 
             if (pkg.scripts['ottoia:prepublish']) {
@@ -220,6 +238,13 @@ class OttoiaManager implements C.IManager {
                 this._logs.debug2('Executing ottoia hook "ottoia:prepublish".');
                 await this._npm.run('ottoia:prepublish', []);
             }
+        }
+
+        this._npm.chdir(this._root);
+
+        if (this._rootPackage.scripts['ottoia:prepare']) {
+
+            await this._npm.run('ottoia:prepare', []);
         }
     }
 
@@ -1095,7 +1120,37 @@ class OttoiaManager implements C.IManager {
 
     }
 
+    /**
+     * Clean up determined package.
+     *
+     * @notice chdir before calling this method.
+     */
+    private async _clean(pkg: I.IPackage, full: boolean): Promise<void> {
+
+        if (pkg.scripts['ottoia:clean']) {
+
+            this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
+
+            await this._npm.run('ottoia:clean', []);
+        }
+        else if (pkg.scripts['clean']) {
+
+            this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
+
+            await this._npm.run('clean', []);
+        }
+
+        if (full) {
+
+            this._logs.debug1(`Removing "node_modules" for sub package "${pkg.name}"...`);
+
+            await this._fs.execAt(pkg.root, 'rm', '-rf', 'node_modules');
+        }
+    }
+
     public async clean(packages: string[] = [], full: boolean = false): Promise<void> {
+
+        this._logs.debug1('Cleaning up the project...');
 
         if (packages.length) {
 
@@ -1110,28 +1165,9 @@ class OttoiaManager implements C.IManager {
 
             const pkg = this._getPackage(pkgName, true);
 
-            if (pkg.scripts['clean']) {
+            this._npm.chdir(pkg.root);
 
-                this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
-                this._npm.chdir(pkg.root);
-
-                await this._npm.run('clean', []);
-            }
-
-            if (pkg.scripts['ottoia:clean']) {
-
-                this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
-                this._npm.chdir(pkg.root);
-
-                await this._npm.run('ottoia:clean', []);
-            }
-
-            if (full) {
-
-                this._logs.debug1(`Removing "node_modules" for sub package "${pkg.name}"...`);
-
-                await this._fs.execAt(pkg.root, 'rm', '-rf', 'node_modules');
-            }
+            await this._clean(pkg, full);
         }
 
         if (this._rootPackage.scripts['ottoia:clean']) {
@@ -1141,6 +1177,14 @@ class OttoiaManager implements C.IManager {
             this._logs.debug1('Executing NPM script "ottoia:clean" for root package...');
 
             await this._npm.run('ottoia:clean', []);
+        }
+        else if (this._rootPackage.scripts['clean']) {
+
+            this._npm.chdir(this._root);
+
+            this._logs.debug1('Executing NPM script "clean" for root package...');
+
+            await this._npm.run('clean', []);
         }
 
         if (full) {

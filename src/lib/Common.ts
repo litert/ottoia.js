@@ -24,6 +24,8 @@ export interface IReleaseOptions {
 
     env: string;
 
+    version: string;
+
     withBreakingChanges: boolean;
 
     withNewFeatures: boolean;

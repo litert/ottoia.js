@@ -11,8 +11,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "port": 4483,
-            "address": "127.0.0.128",
+            "port": 4099,
+            "address": "127.0.0.1",
             "sourceMaps": true,
             "outFiles": [
                 "${workspaceFolder}/cli/**/*.js",
