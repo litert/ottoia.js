@@ -98,9 +98,9 @@ class PackageUtils implements I.IPackageUtils {
             'noRelease': !!packageJson.private,
             'privateAccess': packageJson.access !== 'public',
             'scripts': packageJson.scripts ?? {},
-            'dependencies': packageJson.dependencies,
-            'devDependencies': packageJson.devDependencies,
-            'peerDependencies': packageJson.peerDependencies,
+            'dependencies': packageJson.dependencies ?? {},
+            'devDependencies': packageJson.devDependencies ?? {},
+            'peerDependencies': packageJson.peerDependencies ?? {},
             'raw': packageJson
         };
     }
