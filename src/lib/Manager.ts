@@ -817,7 +817,7 @@ class OttoiaManager implements C.IManager {
 
                 this._logs.debug1(`Installing ${REMOTE_DEPS.length} remote dependencies...`);
 
-                await this._npm.install(REMOTE_DEPS);
+                await this._npm.install(REMOTE_DEPS, false, isDev);
 
                 for (const depName of REMOTE_DEPS) {
 
