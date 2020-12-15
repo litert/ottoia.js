@@ -1,150 +1,173 @@
-import * as L from '@litert/core';
+/**
+ * Copyright 2020 Angus.Fenying <fenying@litert.org>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-export const errors = L.createErrorHub('@litert/ottoia');
+import * as $Exceptions from '@litert/exception';
 
-export const E_PACKAGE_NOT_FOUND = errors.define(
-    null,
-    'package_not_found',
-    'No such a package.',
-    {}
-);
+export const errorRegistry = $Exceptions.createExceptionRegistry({
+    'module': 'ottoia.litert.org',
+    'types': {
+        'public': {
+            'index': $Exceptions.createIncreaseCodeIndex(1)
+        }
+    }
+});
 
-export const E_NPM_ERROR = errors.define(
-    null,
-    'npm_error',
-    'Failed with NPM operation.',
-    {}
-);
+export const E_PACKAGE_NOT_FOUND = errorRegistry.register({
+    name: 'package_not_found',
+    message: 'No such a package.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_PACKAGE_NOT_RELEASED = errors.define(
-    null,
-    'package_not_released',
-    'The package has not been published yet.',
-    {}
-);
+export const E_NPM_ERROR = errorRegistry.register({
+    name: 'npm_error',
+    message: 'Failed with NPM operation.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_INVALID_PACKAGE = errors.define(
-    null,
-    'invalid_package',
-    'The package.json is invalid.',
-    {}
-);
+export const E_PACKAGE_NOT_RELEASED = errorRegistry.register({
+    name: 'package_not_released',
+    message: 'The package has not been published yet.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_INVALID_PATH = errors.define(
-    null,
-    'invalid_path',
-    'The path could not be accessed.',
-    {}
-);
+export const E_INVALID_PACKAGE = errorRegistry.register({
+    name: 'invalid_package',
+    message: 'The package.json is invalid.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_DUP_PACKAGE = errors.define(
-    null,
-    'dup_package',
-    'The determined package already exists.',
-    {}
-);
+export const E_INVALID_PATH = errorRegistry.register({
+    name: 'invalid_path',
+    message: 'The path could not be accessed.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_RELEASE_CONFIG_NOT_FOUND = errors.define(
-    null,
-    'release_config_not_found',
-    'No such a release configuration.',
-    {}
-);
+export const E_DUP_PACKAGE = errorRegistry.register({
+    name: 'dup_package',
+    message: 'The determined package already exists.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_COMMAND_NOT_FOUND = errors.define(
-    null,
-    'command_not_found',
-    'No such a command.',
-    {}
-);
+export const E_RELEASE_CONFIG_NOT_FOUND = errorRegistry.register({
+    name: 'release_config_not_found',
+    message: 'No such a release configuration.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_DUP_PACKAGE_ALIAS = errors.define(
-    null,
-    'dup_package_alias',
-    'The determined package alias already exists.',
-    {}
-);
+export const E_COMMAND_NOT_FOUND = errorRegistry.register({
+    name: 'command_not_found',
+    message: 'No such a command.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_RECURSIVE_DEP = errors.define(
-    null,
-    'recursive_dep',
-    'Recursive dependency is forbidden.',
-    {}
-);
+export const E_DUP_PACKAGE_ALIAS = errorRegistry.register({
+    name: 'dup_package_alias',
+    message: 'The determined package alias already exists.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_INVALID_TEMPLATE = errors.define(
-    null,
-    'invalid_template',
-    'The template of package is invalid.',
-    {}
-);
+export const E_RECURSIVE_DEP = errorRegistry.register({
+    name: 'recursive_dep',
+    message: 'Recursive dependency is forbidden.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_INVALID_PACKAGE_NAME = errors.define(
-    null,
-    'invalid_package_name',
-    'The name of package is invalid.',
-    {}
-);
+export const E_INVALID_TEMPLATE = errorRegistry.register({
+    name: 'invalid_template',
+    message: 'The template of package is invalid.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_INVALID_JSON_FILE = errors.define(
-    null,
-    'invalid_json_file',
-    'The JSON is malformed.',
-    {}
-);
+export const E_INVALID_PACKAGE_NAME = errorRegistry.register({
+    name: 'invalid_package_name',
+    message: 'The name of package is invalid.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_INVALID_ROOT_PACKAGE = errors.define(
-    null,
-    'invalid_root_package',
-    'The package.json of root package is malformed.',
-    {}
-);
+export const E_INVALID_JSON_FILE = errorRegistry.register({
+    name: 'invalid_json_file',
+    message: 'The JSON is malformed.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_NO_ROOT_PACKAGE = errors.define(
-    null,
-    'no_root_package',
-    'The root package not fond.',
-    {}
-);
+export const E_INVALID_ROOT_PACKAGE = errorRegistry.register({
+    name: 'invalid_root_package',
+    message: 'The package.json of root package is malformed.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_SHELL_FAILED = errors.define(
-    null,
-    'shell_failed',
-    'Failed to execute shell command.',
-    {}
-);
+export const E_NO_ROOT_PACKAGE = errorRegistry.register({
+    name: 'no_root_package',
+    message: 'The root package not fond.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_EXISTING_PACKAGE_JSON = errors.define(
-    null,
-    'existing_package_json',
-    'Can not initialize an existing package.json without "--yes" option.',
-    {}
-);
+export const E_SHELL_FAILED = errorRegistry.register({
+    name: 'shell_failed',
+    message: 'Failed to execute shell command.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_UNKNOWN_SUB_PACKAGE = errors.define(
-    null,
-    'unknown_sub_package',
-    'The determined sub packages does not exist.',
-    {}
-);
+export const E_EXISTING_PACKAGE_JSON = errorRegistry.register({
+    name: 'existing_package_json',
+    message: 'Can not initialize an existing package.json without "--yes" option.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_DEP_NOT_FOUND = errors.define(
-    null,
-    'dep_not_found',
-    'No such a dependency.',
-    {}
-);
+export const E_UNKNOWN_SUB_PACKAGE = errorRegistry.register({
+    name: 'unknown_sub_package',
+    message: 'The determined sub packages does not exist.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_DEP_NOT_LOCKED = errors.define(
-    null,
-    'dep_not_locked',
-    'No such a dependency in the root package.json.',
-    {}
-);
+export const E_DEP_NOT_FOUND = errorRegistry.register({
+    name: 'dep_not_found',
+    message: 'No such a dependency.',
+    metadata: {},
+    type: 'public'
+});
 
-export const E_PRIVATE_DEPENDENCY = errors.define(
-    null,
-    'private_dependency',
-    'Can not depend on a private sub package.',
-    {}
-);
+export const E_DEP_NOT_LOCKED = errorRegistry.register({
+    name: 'dep_not_locked',
+    message: 'No such a dependency in the root package.json.',
+    metadata: {},
+    type: 'public'
+});
+
+export const E_PRIVATE_DEPENDENCY = errorRegistry.register({
+    name: 'private_dependency',
+    message: 'Can not depend on a private sub package.',
+    metadata: {},
+    type: 'public'
+});

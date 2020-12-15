@@ -3,6 +3,7 @@
 ## v0.1.2
 
 - config(deps): updated development deps.
+- feat(internal): replaced exception mechanism.
 
 ## v0.1.1
 
