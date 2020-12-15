@@ -25,6 +25,7 @@ module.exports = {
             'internal',
             'doc',
             'lint',
+            'deps',
             'branch',
             'project'
         ]],

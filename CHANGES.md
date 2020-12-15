@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.1.2
+
+- config(deps): updated development deps.
+
 ## v0.1.1
 
 - fix(cmd:install): did not save development dependencies to devDependencies.
