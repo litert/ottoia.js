@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.1.3
+
+- fix(cmd:release): should specify tag on releasing.
+
 ## v0.1.2
 
 - config(deps): updated development deps.

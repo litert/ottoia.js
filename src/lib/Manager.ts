@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Angus.Fenying <fenying@litert.org>
+ * Copyright 2021 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ class OttoiaManager implements C.IManager {
 
                 this._npm.chdir(pkg.root);
 
-                const extArgs: string[] = [];
+                const extArgs: string[] = [`--tag=${cfg.tag}`];
 
                 if (!opts.confirmed) {
 
