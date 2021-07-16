@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.2.1
+
+-   fix(cmd:release): execute clean before everything.
+
 ## v0.2.0
 
 -   feat(cmd:release): do `ottoia clean` before all `ottoia:prepublish` hook instead of cleaning in

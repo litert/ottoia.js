@@ -136,6 +136,8 @@ class OttoiaManager implements C.IManager {
             );
         }
 
+        await this.clean();
+
         this._npm.chdir(this._root);
 
         this._rootPackage.version = version;
@@ -224,8 +226,6 @@ class OttoiaManager implements C.IManager {
     private async _preparePackage(): Promise<void> {
 
         this._npm.chdir(this._root);
-
-        await this.clean();
 
         if (this._rootPackage.scripts['ottoia:prepublish']) {
 
