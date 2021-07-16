@@ -225,7 +225,7 @@ class OttoiaManager implements C.IManager {
 
         this._npm.chdir(this._root);
 
-        await this._clean(this._rootPackage, false);
+        await this.clean();
 
         if (this._rootPackage.scripts['ottoia:prepublish']) {
 
@@ -245,7 +245,7 @@ class OttoiaManager implements C.IManager {
 
             this._npm.chdir(pkg.root);
 
-            await this._clean(pkg, false);
+            // await this._clean(pkg, false);
 
             this._logs.debug2(`Preparing package "${pkgName}".`);
 

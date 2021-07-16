@@ -1,5 +1,10 @@
 # Changes Logs
 
+## v0.2.0
+
+-   feat(cmd:release): do `ottoia clean` before all `ottoia:prepublish` hook instead of cleaning in
+    each project.
+
 ## v0.1.3
 
 - fix(cmd:release): should specify tag on releasing.
