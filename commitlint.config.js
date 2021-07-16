@@ -5,11 +5,7 @@ module.exports = {
         'type-enum': [2, 'always', [
             'feat',
             'fix',
-            'add',
-            'test',
-            'refactor',
-            'config',
-            'merge'
+            'build'
         ]],
         'scope-enum': [2, 'always', [
             'cmd:install',
