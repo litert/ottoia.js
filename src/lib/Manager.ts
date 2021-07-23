@@ -277,7 +277,7 @@ class OttoiaManager implements C.IManager {
                 });
             }
 
-            return `^${localPkg.version}`;
+            return localPkg.version!;
         }
 
         if (!this._rootPackage.raw.dependencies[depName]) {

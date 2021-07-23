@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.2.3
+
+-   feat(cmd:release): bind exact version of local packages.
+
 ## v0.2.2
 
 -   feat(cmd:release): prettify the published package.json.
