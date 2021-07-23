@@ -342,7 +342,7 @@ class OttoiaManager implements C.IManager {
 
             await this._fs.writeFile(
                 this._fs.concatPath(pkg.root, 'package.json'),
-                JSON.stringify(pkg.raw)
+                JSON.stringify(pkg.raw, null, 2)
             );
         }
     }

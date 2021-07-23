@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.2.2
+
+-   feat(cmd:release): prettify the published package.json.
+
 ## v0.2.1
 
 -   fix(cmd:release): execute clean before everything.
