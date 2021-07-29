@@ -116,12 +116,16 @@ class NPMHelper implements I.INPMHelper {
 
     public async run(cmdName: string, args: any[]): Promise<string> {
 
-        return await this._fs.execAt(this._cwd, 'npm', 'run', cmdName, ...args);
+        const ret = await this._fs.execAt(this._cwd, 'npm', 'run', cmdName, ...args);
+
+        return `${ret.stderr}\n${ret.stdout}`;
     }
 
     public async publish(args: any[]): Promise<string> {
 
-        return await this._fs.execAt(this._cwd, 'npm', 'publish', ...args);
+        const ret = await this._fs.execAt(this._cwd, 'npm', 'publish', ...args);
+
+        return `${ret.stderr}\n${ret.stdout}`;
     }
 
     public close(): void {

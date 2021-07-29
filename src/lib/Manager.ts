@@ -188,7 +188,7 @@ class OttoiaManager implements C.IManager {
                     extArgs.push('--access=public');
                 }
 
-                await this._npm.publish(extArgs);
+                this._logs.debug1(await this._npm.publish(extArgs));
             }
 
             this._logs.debug1('Cleaning up packages.');

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as $Exceptions from '@litert/exception';
 import * as I from './Internal';
 import * as E from '../Errors';
 import { promises as $FS } from 'fs';
@@ -27,7 +26,7 @@ class FileUtils implements I.IFileUtils {
 
     public constructor(private _logs: I.ILogger) {}
 
-    private async _exec(cmd: string): Promise<string | $Exceptions.IException> {
+    private async _exec(cmd: string): Promise<Record<'stdout' | 'stderr', string>> {
 
         return new Promise((resolve, reject) => {
 
@@ -38,12 +37,12 @@ class FileUtils implements I.IFileUtils {
                     return reject(error);
                 }
 
-                resolve(stdout ? stdout : stderr ? new E.E_SHELL_FAILED({ metadata: { stderr } }) : stdout);
+                resolve({ stdout, stderr });
             });
         });
     }
 
-    public async execAt(cwd: string, cmd: string, ...args: string[]): Promise<string> {
+    public async execAt(cwd: string, cmd: string, ...args: string[]): Promise<Record<'stdout' | 'stderr', string>> {
 
         const CMD_ID = this._cmdId++;
 
@@ -70,9 +69,9 @@ class FileUtils implements I.IFileUtils {
 
             const result = await this._exec(cmdline);
 
-            if (typeof result !== 'string') {
+            if (!result.stdout && result.stderr) {
 
-                this._logs.debug3(`Command[${CMD_ID}]: ${result}.`);
+                this._logs.debug3(`Command[${CMD_ID}]: ${result.stderr}.`);
 
                 throw result;
             }

@@ -3,6 +3,7 @@
 ## v0.2.3
 
 -   feat(cmd:release): bind exact version of local packages.
+-   feat(cmd:release): output npm publish log on debug1.
 
 ## v0.2.2
 

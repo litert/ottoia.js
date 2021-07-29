@@ -117,7 +117,7 @@ export interface IPackageScanner {
 
 export interface IFileUtils {
 
-    execAt(cwd: string, cmd: string, ...args: string[]): Promise<string>;
+    execAt(cwd: string, cmd: string, ...args: string[]): Promise<Record<'stdout' | 'stderr', string>>;
 
     concatPath(...segs: string[]): string;
 
