@@ -89,6 +89,8 @@ export interface INPMHelper {
 
     publish(args: any[]): Promise<string>;
 
+    unpublish(args: any[]): Promise<string>;
+
     uninstall(dependencies: string[]): Promise<void>;
 
     link(pkgName: string, path: string): Promise<void>;

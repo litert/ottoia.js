@@ -15,6 +15,7 @@ module.exports = {
             'cmd:clean',
             'cmd:bootstrap',
             'cmd:release',
+            'cmd:recall',
             'cmd:show',
             'skeleton',
             'log',

@@ -86,6 +86,27 @@ class OttoiaManager implements C.IManager {
         );
     }
 
+    public async recall(opts: C.IRecallOptions): Promise<void> {
+
+        const pkgs = Object.values(this._packages).filter((v) => !v.noRelease);
+
+        const version: string = opts.version?.replace(/^v/, '');
+
+        const args: string[] = [];
+
+        if (!opts.confirmed) {
+
+            args.push('--dry-run');
+        }
+
+        for (const p of pkgs) {
+
+            this._logs.info(`Recalling ${p.name}@${version}...`);
+
+            await this._npm.unpublish([...args, `${p.name}@${version}`]);
+        }
+    }
+
     public async release(opts: C.IReleaseOptions): Promise<void> {
 
         const cfg = this._rootPackage.ottoiaOptions.releases[opts.env];
@@ -102,7 +123,7 @@ class OttoiaManager implements C.IManager {
             this._logs.warning(`Simulating releasing ${opts.env} version with "--dry-run"...`);
         }
 
-        let version: string = opts.version;
+        let version: string = opts.version?.replace(/^v/, '');
 
         if (!version) {
 

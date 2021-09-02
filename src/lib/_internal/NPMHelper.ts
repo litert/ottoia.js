@@ -128,6 +128,13 @@ class NPMHelper implements I.INPMHelper {
         return `${ret.stderr}\n${ret.stdout}`;
     }
 
+    public async unpublish(args: any[]): Promise<string> {
+
+        const ret = await this._fs.execAt(this._cwd, 'npm', 'unpublish', ...args);
+
+        return `${ret.stderr}\n${ret.stdout}`;
+    }
+
     public close(): void {
 
         this._hCli.close();

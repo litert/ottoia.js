@@ -44,6 +44,11 @@ function createCLAParser(): $Clap.IParser {
         minArguments: 1,
         maxArguments: 1
     }).addCommand({
+        name: 'recall',
+        description: 'Recall a released version.',
+        minArguments: 1,
+        maxArguments: 1
+    }).addCommand({
         name: 'show',
         description: 'Display the information of specific packages.'
     }).addCommand({
@@ -150,6 +155,11 @@ function createCLAParser(): $Clap.IParser {
         'path': 'release',
         'name': 'confirm',
         'description': 'Confirmation of release. Otherwise, --dry-run will be used.',
+        'arguments': 0
+    }).addOption({
+        'path': 'recall',
+        'name': 'confirm',
+        'description': 'Confirmation of recall. Otherwise, --dry-run will be used.',
         'arguments': 0
     }).addOption({
         'path': 'release',

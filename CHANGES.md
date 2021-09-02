@@ -1,9 +1,10 @@
 # Changes Logs
 
-## v0.2.4
+## v0.3.0
 
 -   build(lint): upgraded eslint and applied to more stirct rules.
 -   build(project): applied to more strict typescript options.
+-   feat(cmd:recall): added recall command.
 
 ## v0.2.3
 

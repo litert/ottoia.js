@@ -36,6 +36,13 @@ export interface IPackage {
     peerDependencies: Record<string, string>;
 }
 
+export interface IRecallOptions {
+
+    version: string;
+
+    confirmed: boolean;
+}
+
 export interface IReleaseOptions {
 
     env: string;
@@ -70,6 +77,8 @@ export interface IManager {
     reload(): Promise<void>;
 
     release(opts: IReleaseOptions): Promise<void>;
+
+    recall(opts: IRecallOptions): Promise<void>;
 
     getPackage(name: string): IPackage;
 

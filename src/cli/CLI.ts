@@ -83,6 +83,13 @@ export default class OttoiaCLI {
                 });
                 break;
             }
+            case 'recall': {
+                await this._ottoia.recall({
+                    version: this._cla.arguments[0],
+                    confirmed: !!this._cla.commands[0].flags['confirm'],
+                });
+                break;
+            }
             case 'create': {
 
                 const tplFile = this._cla.commands[0].options.template?.[0];
