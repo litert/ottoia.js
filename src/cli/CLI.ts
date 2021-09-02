@@ -20,7 +20,7 @@ import parseCLA from './Clap';
 
 export default class OttoiaCLI {
 
-    private readonly _cla: $Clap.IResult;
+    private readonly _cla: $Clap.IParseResult;
 
     private readonly _ottoia: $Ottoia.IManager;
 
@@ -41,20 +41,20 @@ export default class OttoiaCLI {
 
     public async main(): Promise<void> {
 
-        if (this._cla.commands[0].name !== 'initialize') {
+        if (this._cla.commands[0] !== 'initialize') {
 
             await this._ottoia.ensureRootPackagePath();
 
             await this._ottoia.reload();
         }
 
-        switch (this._cla.commands[0].name) {
+        switch (this._cla.commands[0]) {
             case 'initialize': {
-                await this._ottoia.initialize(!!this._cla.commands[0].flags['yes']);
+                await this._ottoia.initialize(!!this._cla.flags['yes']);
                 break;
             }
             case 'clean': {
-                await this._ottoia.clean(this._cla.arguments, !!this._cla.commands[0].flags['full']);
+                await this._ottoia.clean(this._cla.arguments, !!this._cla.flags['full']);
                 break;
             }
             case 'bootstrap': {
@@ -64,7 +64,7 @@ export default class OttoiaCLI {
             case 'run': {
                 console.log(this._cla.flags);
                 await this._ottoia.runCommand(
-                    this._cla.commands[0].options.package ?? [],
+                    this._cla.options.package ?? [],
                     this._cla.arguments[0],
                     this._cla.arguments.slice(1),
                     !!(this._cla.flags['root-only'] || this._cla.flags['root']),
@@ -74,33 +74,33 @@ export default class OttoiaCLI {
             }
             case 'release': {
                 await this._ottoia.release({
-                    version: this._cla.commands[0].options['version']?.[0],
+                    version: this._cla.options['version']?.[0],
                     env: this._cla.arguments[0],
-                    withBreakingChanges: !!this._cla.commands[0].flags['breaking-changes'],
-                    withNewFeatures: !!this._cla.commands[0].flags['new-feature'],
-                    withPatches: !!this._cla.commands[0].flags['patch'],
-                    confirmed: !!this._cla.commands[0].flags['confirm'],
+                    withBreakingChanges: !!this._cla.flags['breaking-changes'],
+                    withNewFeatures: !!this._cla.flags['new-feature'],
+                    withPatches: !!this._cla.flags['patch'],
+                    confirmed: !!this._cla.flags['confirm'],
                 });
                 break;
             }
             case 'recall': {
                 await this._ottoia.recall({
                     version: this._cla.arguments[0],
-                    confirmed: !!this._cla.commands[0].flags['confirm'],
+                    confirmed: !!this._cla.flags['confirm'],
                 });
                 break;
             }
             case 'create': {
 
-                const tplFile = this._cla.commands[0].options.template?.[0];
+                const tplFile = this._cla.options.template?.[0];
 
                 await this._ottoia.createPackage(
                     this._cla.arguments[0],
                     tplFile,
-                    !!this._cla.commands[0].flags['no-release'],
-                    !!this._cla.commands[0].flags['private-access'],
-                    this._cla.commands[0].options.dir?.[0],
-                    this._cla.commands[0].options.alias?.[0],
+                    !!this._cla.flags['no-release'],
+                    !!this._cla.flags['private-access'],
+                    this._cla.options.dir?.[0],
+                    this._cla.options.alias?.[0],
                 );
 
                 this._printPackageInfo(this._ottoia.getPackage(this._cla.arguments[0]));
@@ -132,9 +132,9 @@ export default class OttoiaCLI {
 
                 await this._ottoia.install(
                     this._cla.arguments,
-                    this._cla.commands[0].options.package ?? [],
-                    !!this._cla.commands[0].flags.peer,
-                    !!this._cla.commands[0].flags.development
+                    this._cla.options.package ?? [],
+                    !!this._cla.flags.peer,
+                    !!this._cla.flags.development
                 );
                 break;
             }
@@ -142,7 +142,7 @@ export default class OttoiaCLI {
 
                 await this._ottoia.uninstall(
                     this._cla.arguments,
-                    this._cla.commands[0].options.package ?? []
+                    this._cla.options.package ?? []
                 );
                 break;
             }

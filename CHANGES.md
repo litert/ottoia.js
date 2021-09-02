@@ -3,6 +3,7 @@
 ## v0.3.0
 
 -   build(lint): upgraded eslint and applied to more stirct rules.
+-   build(deps): upgraded `@litert/clap`.
 -   build(project): applied to more strict typescript options.
 -   feat(cmd:recall): added recall command.
 
