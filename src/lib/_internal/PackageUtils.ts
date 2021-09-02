@@ -87,6 +87,17 @@ class PackageUtils implements I.IPackageUtils {
 
         const ret = await this.read(path) as I.IRootPackage;
 
+        const path2PkgLock = this._fs.concatPath(path, './package-lock.json');
+
+        if (await this._fs.existsFile(path2PkgLock)) {
+
+            ret.packageLock = await this._fs.readJsonFile(path2PkgLock);
+        }
+        else {
+
+            ret.packageLock = { packages: {} };
+        }
+
         this._logs.debug2(`Loaded root package from "${path}".`);
 
         if (!ret.version || !ret.raw.ottoia) {

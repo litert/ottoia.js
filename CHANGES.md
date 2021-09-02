@@ -6,6 +6,7 @@
 -   build(deps): upgraded `@litert/clap`.
 -   build(project): applied to more strict typescript options.
 -   feat(cmd:recall): added recall command.
+-   feat(cmd:release): lock deps from package-lock.json.
 
 ## v0.2.3
 

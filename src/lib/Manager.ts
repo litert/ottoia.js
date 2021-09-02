@@ -39,9 +39,9 @@ class OttoiaManager implements C.IManager {
 
     private readonly _depCounters: I.IDependencyCounter = I.createDependencyCounter();
 
-    private _rootPackage!: I.IRootPackage;
+    private _rootPkg!: I.IRootPackage;
 
-    private _pkgRoot!: string;
+    private _prjRoot!: string;
 
     private readonly _pkgUtils: I.IPackageUtils;
 
@@ -109,7 +109,7 @@ class OttoiaManager implements C.IManager {
 
     public async release(opts: C.IReleaseOptions): Promise<void> {
 
-        const cfg = this._rootPackage.ottoiaOptions.releases[opts.env];
+        const cfg = this._rootPkg.ottoiaOptions.releases[opts.env];
 
         if (!cfg) {
 
@@ -145,7 +145,7 @@ class OttoiaManager implements C.IManager {
                 /**
                  * Use a new version if none of package exists
                  */
-                version = this._rootPackage.version;
+                version = this._rootPkg.version;
             }
 
             const versioner = cfg.versioner ?
@@ -162,11 +162,14 @@ class OttoiaManager implements C.IManager {
             );
         }
 
-        await this.clean();
+        if (!opts.noClean) {
+
+            await this.clean();
+        }
 
         this._npm.chdir(this._root);
 
-        this._rootPackage.version = version;
+        this._rootPkg.version = version;
 
         this._logs.info(`Releasing the ${opts.env} version "v${version}"...`);
 
@@ -253,7 +256,7 @@ class OttoiaManager implements C.IManager {
 
         this._npm.chdir(this._root);
 
-        if (this._rootPackage.scripts['ottoia:prepublish']) {
+        if (this._rootPkg.scripts['ottoia:prepublish']) {
 
             await this._npm.run('ottoia:prepublish', []);
         }
@@ -284,7 +287,7 @@ class OttoiaManager implements C.IManager {
 
         this._npm.chdir(this._root);
 
-        if (this._rootPackage.scripts['ottoia:prepare']) {
+        if (this._rootPkg.scripts['ottoia:prepare']) {
 
             await this._npm.run('ottoia:prepare', []);
         }
@@ -306,14 +309,17 @@ class OttoiaManager implements C.IManager {
             return localPkg.version!;
         }
 
-        if (!this._rootPackage.raw.dependencies[depName]) {
+        const v = this._rootPkg.packageLock.packages[`node_modules/${depName}`]?.version ??
+            this._rootPkg.raw.dependencies[depName];
+
+        if (!v) {
 
             throw new E.E_DEP_NOT_LOCKED({
                 metadata: { package: pkgName, dependency: depName }
             });
         }
 
-        return this._rootPackage.raw.dependencies[depName];
+        return v;
     }
 
     /**
@@ -610,7 +616,7 @@ class OttoiaManager implements C.IManager {
 
                 this._logs.debug1(`Try detecting package.json in "${curPath}"...`);
 
-                this._rootPackage = await this._pkgUtils.readRoot(curPath);
+                this._rootPkg = await this._pkgUtils.readRoot(curPath);
 
                 this._logs.debug1(`Detected package.json in "${curPath}"...`);
                 this._root = curPath;
@@ -629,7 +635,7 @@ class OttoiaManager implements C.IManager {
             }
         }
 
-        this._pkgRoot = this._fs.concatPath(this._root, './packages');
+        this._prjRoot = this._fs.concatPath(this._root, './packages');
         this._npm.chdir(this._root);
     }
 
@@ -643,14 +649,14 @@ class OttoiaManager implements C.IManager {
 
         try {
 
-            this._logs.debug1(`Scanning possible packages in path "${this._pkgRoot}"...`);
+            this._logs.debug1(`Scanning possible packages in path "${this._prjRoot}"...`);
 
-            pkgPathList = await this._pkgUtils.scan(this._pkgRoot);
+            pkgPathList = await this._pkgUtils.scan(this._prjRoot);
 
         }
         catch {
 
-            this._logs.debug1(`Failed to scan packages in "${this._pkgRoot}".`);
+            this._logs.debug1(`Failed to scan packages in "${this._prjRoot}".`);
 
             pkgPathList = [];
         }
@@ -800,7 +806,7 @@ class OttoiaManager implements C.IManager {
 
         const pkg = await this._pkgUtils.create({
 
-            root: this._pkgRoot,
+            root: this._prjRoot,
             name,
             templateFile: tplFile,
             noRelease,
@@ -1226,7 +1232,7 @@ class OttoiaManager implements C.IManager {
             await this._clean(pkg, full);
         }
 
-        if (this._rootPackage.scripts['ottoia:clean']) {
+        if (this._rootPkg.scripts['ottoia:clean']) {
 
             this._npm.chdir(this._root);
 
@@ -1234,7 +1240,7 @@ class OttoiaManager implements C.IManager {
 
             await this._npm.run('ottoia:clean', []);
         }
-        else if (this._rootPackage.scripts['clean']) {
+        else if (this._rootPkg.scripts['clean']) {
 
             this._npm.chdir(this._root);
 

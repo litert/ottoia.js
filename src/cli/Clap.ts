@@ -118,6 +118,10 @@ function createCLAParser(): $Clap.IHelper {
                 'description': 'Confirmation of release. Otherwise, --dry-run will be used.'
             })
             .addFlag({
+                'name': 'no-clean',
+                'description': 'Don\'t clean before building.'
+            })
+            .addFlag({
                 'name': 'breaking-changes',
                 'description': 'Create a new version with breaking changes.'
             })

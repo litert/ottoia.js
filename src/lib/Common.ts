@@ -55,6 +55,8 @@ export interface IReleaseOptions {
 
     withPatches: boolean;
 
+    noClean: boolean;
+
     confirmed: boolean;
 }
 

@@ -80,6 +80,7 @@ export default class OttoiaCLI {
                     withNewFeatures: !!this._cla.flags['new-feature'],
                     withPatches: !!this._cla.flags['patch'],
                     confirmed: !!this._cla.flags['confirm'],
+                    noClean: !!this._cla.flags['no-clean']
                 });
                 break;
             }
