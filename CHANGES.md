@@ -3,6 +3,7 @@
 ## v0.2.4
 
 -   build(lint): upgraded eslint and applied to more stirct rules.
+-   build(project): applied to more strict typescript options.
 
 ## v0.2.3
 

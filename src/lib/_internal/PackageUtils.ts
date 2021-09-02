@@ -17,7 +17,7 @@
 import * as E from '../Errors';
 import * as I from './Internal';
 import * as $TyG from '@litert/typeguard';
-import * as validateNPMPackageName from 'validate-npm-package-name';
+import validateNPMPackageName from 'validate-npm-package-name';
 
 type TemplateFileList = Array<string | [string, string]>;
 

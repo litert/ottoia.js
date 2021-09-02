@@ -20,7 +20,7 @@ class BuiltInVersionNamer implements C.IVersionNamer {
 
     public next(
         current: string,
-        env: string,
+        _env: string,
         withBreakingChanges: boolean,
         withNewFeatures: boolean,
         // withPatches: boolean,

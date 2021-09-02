@@ -53,16 +53,21 @@ class OttoiaManager implements C.IManager {
 
         I.loggerFactory.unmute(['error', 'info', 'warning']);
 
-        switch (verbose) {
-            case 0: break;
-            default:
-            case 4: I.loggerFactory.enableTrace(10);
-            // eslint-disable-next-line no-fallthrough
-            case 3: I.loggerFactory.unmute('debug3');
-            // eslint-disable-next-line no-fallthrough
-            case 2: I.loggerFactory.unmute('debug2');
-            // eslint-disable-next-line no-fallthrough
-            case 1: I.loggerFactory.unmute('debug1'); break;
+        if (verbose >= 4) {
+
+            I.loggerFactory.enableTrace(10);
+        }
+        if (verbose >= 3) {
+
+            I.loggerFactory.unmute('debug3');
+        }
+        if (verbose >= 2) {
+
+            I.loggerFactory.unmute('debug2');
+        }
+        if (verbose >= 1) {
+
+            I.loggerFactory.unmute('debug1');
         }
 
         this._logs = I.loggerFactory.createTextLogger('manager');
