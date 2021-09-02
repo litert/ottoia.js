@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-require-imports */
 import * as C from './Common';
 import * as I from './_internal';
 import * as E from './Errors';
@@ -32,23 +31,23 @@ const NPM_HOOKS = [
 
 class OttoiaManager implements C.IManager {
 
-    private _fs: I.IFileUtils;
+    private readonly _fs: I.IFileUtils;
 
     private _packages: Record<string, I.IPackage> = {};
 
     private _aliases: Record<string, string> = {};
 
-    private _depCounters: I.IDependencyCounter = I.createDependencyCounter();
+    private readonly _depCounters: I.IDependencyCounter = I.createDependencyCounter();
 
     private _rootPackage!: I.IRootPackage;
 
     private _pkgRoot!: string;
 
-    private _pkgUtils: I.IPackageUtils;
+    private readonly _pkgUtils: I.IPackageUtils;
 
-    private _npm: I.INPMHelper;
+    private readonly _npm: I.INPMHelper;
 
-    private _logs: I.ILogger;
+    private readonly _logs: I.ILogger;
 
     public constructor(private _root: string, verbose: number = 0) {
 
@@ -113,7 +112,7 @@ class OttoiaManager implements C.IManager {
                 /**
                  * Use the newest one if any package exists.
                  */
-                version = Object.values(pkgVersions).sort(I.builtInCmpSemVersion).pop() as string;
+                version = Object.values(pkgVersions).sort(I.builtInCmpSemVersion).pop()!;
             }
             else {
 
@@ -124,6 +123,7 @@ class OttoiaManager implements C.IManager {
             }
 
             const versioner = cfg.versioner ?
+                // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
                 require(this._fs.concatPath(this._root, cfg.versioner)).default as C.IVersionNamer :
                 I.createBuiltInVersionNamer();
 
@@ -949,9 +949,19 @@ class OttoiaManager implements C.IManager {
 
                         if (indirectLocalDeps.length) {
 
-                            this._logs.debug1(`Installing indirect local dependencies of "${dep.name}" to sub package "${pkg.name}".`);
+                            this._logs.debug1(
+                                `Installing indirect local dependencies of "${dep.name}" to sub package "${pkg.name}".`
+                            );
 
-                            await this.install(indirectLocalDeps, [pkg.name], false, false, [...depPath, pkg.name], true, true);
+                            await this.install(
+                                indirectLocalDeps,
+                                [pkg.name],
+                                false,
+                                false,
+                                [...depPath, pkg.name],
+                                true,
+                                true
+                            );
                         }
 
                         await this._npm.link(dep.name, dep.root);
@@ -1016,7 +1026,7 @@ class OttoiaManager implements C.IManager {
         /**
          * Get the reference map of all dependencies of all sub projects.
          */
-        let remoteDepsMap = this._depCounters.generateMap();
+        const remoteDepsMap = this._depCounters.generateMap();
 
         this._npm.chdir(this._root);
 
@@ -1077,8 +1087,12 @@ class OttoiaManager implements C.IManager {
         /**
          * Only the explicit dependencies should be uninstalled.
          */
-        const REMOTE_DEPS = deps.filter((v) => this._pkgUtils.isValidDependencyName(v) && !this._getPackage(v, false)).filter((v) => !!explicitDepRefs[v]);
-        const LOCAL_DEPS = deps.map((v) => this._getPackage(v, false)?.name).filter((v) => v && !!explicitDepRefs[v]);
+        const REMOTE_DEPS = deps
+            .filter((v) => this._pkgUtils.isValidDependencyName(v) && !this._getPackage(v, false))
+            .filter((v) => !!explicitDepRefs[v]);
+        const LOCAL_DEPS = deps
+            .map((v) => this._getPackage(v, false)?.name)
+            .filter((v) => v && !!explicitDepRefs[v]);
 
         if (REMOTE_DEPS.length + LOCAL_DEPS.length !== deps.length) {
 

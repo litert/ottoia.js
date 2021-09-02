@@ -20,9 +20,9 @@ import parseCLA from './Clap';
 
 export default class OttoiaCLI {
 
-    private _cla: $Clap.IResult;
+    private readonly _cla: $Clap.IResult;
 
-    private _ottoia: $Ottoia.IManager;
+    private readonly _ottoia: $Ottoia.IManager;
 
     public constructor() {
 
@@ -74,7 +74,7 @@ export default class OttoiaCLI {
             }
             case 'release': {
                 await this._ottoia.release({
-                    version: this._cla.commands[0].options['version']?.[0]!,
+                    version: this._cla.commands[0].options['version']?.[0],
                     env: this._cla.arguments[0],
                     withBreakingChanges: !!this._cla.commands[0].flags['breaking-changes'],
                     withNewFeatures: !!this._cla.commands[0].flags['new-feature'],

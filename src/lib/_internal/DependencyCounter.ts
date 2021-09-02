@@ -24,7 +24,7 @@ class DependencyCounter implements I.IDependencyCounter {
 
     public add(pkgName: string, deps: string[]): void {
 
-        let pkg = this._packages[pkgName] ?? {};
+        const pkg = this._packages[pkgName] ?? {};
 
         this._packages[pkgName] = pkg;
 
@@ -41,7 +41,7 @@ class DependencyCounter implements I.IDependencyCounter {
 
     public remove(pkgName: string, deps: string[]): void {
 
-        let pkg = this._packages[pkgName] ?? {};
+        const pkg = this._packages[pkgName] ?? {};
 
         if (!pkg) {
 

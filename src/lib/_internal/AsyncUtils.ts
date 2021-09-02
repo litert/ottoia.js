@@ -38,7 +38,7 @@ export function multiTasks<T, TE>(
 
     return new Promise<Array<IWaitResult<T, TE>>>(function(resolve): void {
 
-        let ret: Array<IWaitResult<T, TE>> = Array(tasks.length);
+        const ret: Array<IWaitResult<T, TE>> = Array(tasks.length);
 
         let done: number = 0;
 

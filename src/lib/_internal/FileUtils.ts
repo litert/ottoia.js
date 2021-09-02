@@ -24,7 +24,7 @@ class FileUtils implements I.IFileUtils {
 
     private _cmdId = Date.now();
 
-    public constructor(private _logs: I.ILogger) {}
+    public constructor(private readonly _logs: I.ILogger) {}
 
     private async _exec(cmd: string): Promise<Record<'stdout' | 'stderr', string>> {
 
@@ -34,7 +34,7 @@ class FileUtils implements I.IFileUtils {
 
                 if (error) {
 
-                    return reject(error);
+                    reject(error); return;
                 }
 
                 resolve({ stdout, stderr });
@@ -130,7 +130,7 @@ class FileUtils implements I.IFileUtils {
 
         this._logs.debug3(`Reading from file "${file}".`);
 
-        return await $FS.readFile(file, {encoding: 'utf8'});
+        return $FS.readFile(file, { encoding: 'utf8' });
     }
 
     public async readJsonFile<T>(file: string): Promise<T> {

@@ -184,7 +184,7 @@ function createCLAParser(): $Clap.IParser {
 
 function printHelp(parser: $Clap.IParser, helpPath: string): void {
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     console.log(`Version ${require('../package.json').version}`);
     console.log(parser.generateHelp('ottoia', helpPath).join('\n'));
 }

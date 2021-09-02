@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.2.4
+
+-   build(lint): upgraded eslint and applied to more stirct rules.
+
 ## v0.2.3
 
 -   feat(cmd:release): bind exact version of local packages.

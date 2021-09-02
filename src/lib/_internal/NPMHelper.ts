@@ -22,7 +22,7 @@ import * as $Http from '@litert/http-client';
 
 class NPMHelper implements I.INPMHelper {
 
-    private _hCli = $Http.createHttpClient();
+    private readonly _hCli = $Http.createHttpClient();
 
     public constructor(
         private readonly _logs: I.ILogger,
