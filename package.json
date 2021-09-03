@@ -45,7 +45,7 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@litert/clap": "^2.0.1",
+    "@litert/clap": "^2.0.2",
     "@litert/exception": "^1.0.0",
     "@litert/http-client": "^1.0.0",
     "@litert/logger": "^1.1.3",
