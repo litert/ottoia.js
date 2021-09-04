@@ -55,6 +55,22 @@ class PackageUtils implements I.IPackageUtils {
         private readonly _fs: I.IFileUtils
     ) {}
 
+    public parseDependency(expr: string): I.IDependency {
+
+        const re = /^((@[-.\w]+\/)?([-.\w]+))(@[-.\w]+\/)?/.exec(expr);
+
+        if (!re) {
+
+            throw new E.E_DEP_INVALID({ expr });
+        }
+
+        return {
+            name: re[1],
+            tag: re[4] ?? 'latest',
+            expr
+        };
+    }
+
     public isValidPackageName(name: string): boolean {
 
         return validateNPMPackageName(name).validForNewPackages;

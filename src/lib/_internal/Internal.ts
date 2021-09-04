@@ -83,7 +83,7 @@ export interface INPMHelper {
 
     bootstrap(): Promise<void>;
 
-    install(dependencies: string[], peer?: boolean, dev?: boolean): Promise<void>;
+    install(dependencies: IDependency[], peer?: boolean, dev?: boolean): Promise<void>;
 
     run(cmdName: string, args: any[]): Promise<string>;
 
@@ -167,7 +167,18 @@ export interface IPackageOptions {
     alias?: string;
 }
 
+export interface IDependency {
+
+    name: string;
+
+    tag: string;
+
+    expr: string;
+}
+
 export interface IPackageUtils {
+
+    parseDependency(expr: string): IDependency;
 
     isValidPackageName(name: string): boolean;
 

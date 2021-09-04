@@ -59,28 +59,28 @@ class NPMHelper implements I.INPMHelper {
         await this._fs.execAt(this._cwd, 'npm', 'install');
     }
 
-    public async install(dependencies: string[], peer?: boolean, dev?: boolean): Promise<void> {
+    public async install(dependencies: I.IDependency[], peer?: boolean, dev?: boolean): Promise<void> {
 
         if (!dependencies.length) {
 
             return;
         }
 
-        dependencies = dependencies.slice();
+        const args: string[] = dependencies.slice().map((v) => v.expr);
 
         if (peer) {
 
             this._logs.debug2('Installing peer dependencies...');
-            dependencies.push('--peer');
+            args.push('--peer');
         }
 
         if (dev) {
 
             this._logs.debug2('Installing development dependencies...');
-            dependencies.push('--save-dev');
+            args.push('--save-dev');
         }
 
-        await this._fs.execAt(this._cwd, 'npm', 'install', ...dependencies);
+        await this._fs.execAt(this._cwd, 'npm', 'install', ...args);
     }
 
     public async getCurrentVersionSet(

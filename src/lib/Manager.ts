@@ -831,8 +831,8 @@ class OttoiaManager implements C.IManager {
     }
 
     public async install(
-        deps: string[],
-        pkgNames: string[],
+        depExprs: string[],
+        dstPkgNames: string[],
         isPeer: boolean = false,
         isDev: boolean = false,
         depPath: string[] = [],
@@ -840,40 +840,42 @@ class OttoiaManager implements C.IManager {
         noBootStrap: boolean = false
     ): Promise<void> {
 
-        deps = deps.map((v) => v.toLowerCase());
+        const deps = depExprs.map((v) => this._pkgUtils.parseDependency(v.toLowerCase()));
 
         if (!deps.length) {
 
             return;
         }
 
-        pkgNames = pkgNames.map((v) => v.toLowerCase());
+        dstPkgNames = dstPkgNames.map((v) => v.toLowerCase());
 
         if (!noSave) {
 
             await this._createPackageJsonBackup();
         }
 
-        if (pkgNames.length) {
+        if (dstPkgNames.length) {
 
             this._logs.debug1('Installing to determined sub packages...');
-            this._checkPackages(pkgNames);
+            this._checkPackages(dstPkgNames);
         }
         else {
 
             this._logs.debug1('Installing to all sub packages...');
-            pkgNames = Object.keys(this._packages);
+            dstPkgNames = Object.keys(this._packages);
         }
 
         const pkgs: Record<string, I.IPackage> = {};
 
-        for (const p of pkgNames) {
+        for (const p of dstPkgNames) {
 
             pkgs[p] = this._getPackage(p, true);
         }
 
-        const REMOTE_DEPS = deps.filter((v) => this._pkgUtils.isValidDependencyName(v) && !this._getPackage(v, false));
-        const LOCAL_DEPS = deps.filter((v) => !!this._getPackage(v, false));
+        const REMOTE_DEPS = deps.filter(
+            (p) => this._pkgUtils.isValidDependencyName(p.name) && !this._getPackage(p.name, false)
+        );
+        const LOCAL_DEPS = deps.filter((v) => !!this._getPackage(v.name, false));
 
         if (REMOTE_DEPS.length + LOCAL_DEPS.length !== deps.length) {
 
@@ -892,17 +894,17 @@ class OttoiaManager implements C.IManager {
 
                 await this._npm.install(REMOTE_DEPS, false, isDev);
 
-                for (const depName of REMOTE_DEPS) {
+                for (const depPkg of REMOTE_DEPS) {
 
-                    for (const pkgName of pkgNames) {
+                    for (const pkgName of dstPkgNames) {
 
                         const pkg = pkgs[pkgName];
 
-                        this._logs.debug1(`Installed "${depName}" to sub package "${pkg.name}".`);
+                        this._logs.debug1(`Installed "${depPkg.expr}" to sub package "${pkg.name}".`);
 
-                        delete pkg.peerDependencies[depName];
-                        delete pkg.devDependencies[depName];
-                        delete pkg.dependencies[depName];
+                        delete pkg.peerDependencies[depPkg.name];
+                        delete pkg.devDependencies[depPkg.name];
+                        delete pkg.dependencies[depPkg.name];
 
                         /**
                          * If --development is specified, only root package.json will be written in.
@@ -911,11 +913,11 @@ class OttoiaManager implements C.IManager {
 
                             if (isPeer) {
 
-                                pkg.peerDependencies[depName] = DEP_VER_PLACE_HOLDER;
+                                pkg.peerDependencies[depPkg.name] = DEP_VER_PLACE_HOLDER;
                             }
                             else  {
 
-                                pkg.dependencies[depName] = DEP_VER_PLACE_HOLDER;
+                                pkg.dependencies[depPkg.name] = DEP_VER_PLACE_HOLDER;
                             }
                         }
                     }
@@ -926,82 +928,82 @@ class OttoiaManager implements C.IManager {
 
                 this._logs.debug1(`Installing ${LOCAL_DEPS.length} local dependencies...`);
 
-                for (const depName of LOCAL_DEPS) {
+                for (const dep of LOCAL_DEPS) {
 
-                    const dep = this._getPackage(depName, true);
+                    const ldp = this._getPackage(dep.name, true);
 
-                    for (const pkgName of pkgNames) {
+                    for (const pkgName of dstPkgNames) {
 
-                        const pkg = pkgs[pkgName];
+                        const p = pkgs[pkgName];
 
-                        if (dep.name === pkg.name) {
+                        if (ldp.name === p.name) {
 
-                            this._logs.debug1(`Not installed "${depName}" to itself.`);
+                            this._logs.debug1(`Not installed "${dep.expr}" to itself.`);
                             continue;
                         }
 
-                        this._logs.debug1(`Installed "${depName}" to sub package "${pkg.name}".`);
+                        this._logs.debug1(`Installed "${dep.expr}" to sub package "${p.name}".`);
 
                         if (
-                            dep.dependencies[pkg.name]
-                            || dep.devDependencies[pkg.name]
-                            || dep.peerDependencies[pkg.name]
-                            || depPath.includes(dep.name)
+                            ldp.dependencies[p.name]
+                            || ldp.devDependencies[p.name]
+                            || ldp.peerDependencies[p.name]
+                            || depPath.includes(ldp.name)
                         ) {
 
-                            throw new E.E_RECURSIVE_DEP({ metadata: { package: pkg.name, dependency: dep.name } });
+                            throw new E.E_RECURSIVE_DEP({ metadata: { package: p.name, dependency: ldp.name } });
                         }
 
                         if (!noSave) {
 
-                            delete pkg.devDependencies[dep.name];
-                            delete pkg.dependencies[dep.name];
-                            delete pkg.peerDependencies[dep.name];
+                            delete p.devDependencies[ldp.name];
+                            delete p.dependencies[ldp.name];
+                            delete p.peerDependencies[ldp.name];
 
                             if (isPeer) {
 
-                                pkg.peerDependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                                p.peerDependencies[ldp.name] = DEP_VER_PLACE_HOLDER;
                             }
                             else if (isDev) {
 
-                                pkg.devDependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                                p.devDependencies[ldp.name] = DEP_VER_PLACE_HOLDER;
                             }
                             else {
 
-                                pkg.dependencies[dep.name] = DEP_VER_PLACE_HOLDER;
+                                p.dependencies[ldp.name] = DEP_VER_PLACE_HOLDER;
                             }
                         }
 
-                        this._npm.chdir(pkg.root);
+                        this._npm.chdir(p.root);
 
                         /**
                          * Install the indirected dependencies of the new installed dependencies.
                          */
-                        const indirectLocalDeps = this._extractLocalDeps(dep, true);
+                        const indirectLocalDeps = this._extractLocalDeps(ldp, true);
 
                         if (indirectLocalDeps.length) {
 
                             this._logs.debug1(
-                                `Installing indirect local dependencies of "${dep.name}" to sub package "${pkg.name}".`
+                                `Installing indirect local dependencies of "${ldp.name}" to sub package "${p.name}".`
                             );
 
                             await this.install(
                                 indirectLocalDeps,
-                                [pkg.name],
+                                [p.name],
                                 false,
                                 false,
-                                [...depPath, pkg.name],
+                                [...depPath, p.name],
                                 true,
                                 true
                             );
                         }
 
-                        await this._npm.link(dep.name, dep.root);
+                        await this._npm.link(ldp.name, ldp.root);
                     }
                 }
             }
 
-            for (const pkgName of pkgNames) {
+            for (const pkgName of dstPkgNames) {
 
                 await this._pkgUtils.save(this._getPackage(pkgName, true));
             }

@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.1
+
+-   fix(cmd:install): resolve dep tag/version correctly.
+
 ## v0.3.0
 
 -   build(lint): upgraded eslint and applied to more stirct rules.

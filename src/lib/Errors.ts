@@ -125,7 +125,7 @@ export const E_INVALID_ROOT_PACKAGE = errorRegistry.register({
 
 export const E_NO_ROOT_PACKAGE = errorRegistry.register({
     name: 'no_root_package',
-    message: 'The root package not fond.',
+    message: 'The root package not found.',
     metadata: {},
     type: 'public'
 });
@@ -154,6 +154,13 @@ export const E_UNKNOWN_SUB_PACKAGE = errorRegistry.register({
 export const E_DEP_NOT_FOUND = errorRegistry.register({
     name: 'dep_not_found',
     message: 'No such a dependency.',
+    metadata: {},
+    type: 'public'
+});
+
+export const E_DEP_INVALID = errorRegistry.register({
+    name: 'dep_invalid',
+    message: 'Can not resolve the dependency expression.',
     metadata: {},
     type: 'public'
 });
