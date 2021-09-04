@@ -1114,6 +1114,13 @@ class OttoiaManager implements C.IManager {
 
     public async uninstall(deps: string[], pkgs: string[]): Promise<void> {
 
+        if (!deps.length) {
+
+            return;
+        }
+
+        deps = deps.map((d) => this._pkgUtils.parseDependency(d).name);
+
         const explicitDepRefs = this._depCounters.generateMap();
 
         /**

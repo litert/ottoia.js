@@ -3,6 +3,7 @@
 ## v0.3.1
 
 -   fix(cmd:install): resolve dep tag/version correctly.
+-   fix(cmd:uninstall): resolve dep tag/version correctly.
 -   fix(internal): simplified the exception.
 
 ## v0.3.0
