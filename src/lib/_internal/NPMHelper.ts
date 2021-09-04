@@ -157,7 +157,7 @@ class NPMHelper implements I.INPMHelper {
             if (hReq.statusCode === 404) {
 
                 this._logs.debug3(`Package "${pkgName}" is not published yet.`);
-                throw new E.E_PACKAGE_NOT_RELEASED({ metadata: { package: pkgName }  });
+                throw new E.E_PACKAGE_NOT_RELEASED({ package: pkgName });
             }
 
             throw new E.E_NPM_ERROR();

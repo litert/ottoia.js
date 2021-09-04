@@ -56,7 +56,7 @@ class FileUtils implements I.IFileUtils {
 
             this._logs.debug3(`Command[${CMD_ID}]: CWD ${cwd} does not exist.`);
 
-            throw new E.E_INVALID_PATH({ metadata: { path: cwd } });
+            throw new E.E_INVALID_PATH({ path: cwd });
         }
 
         try {
@@ -143,7 +143,7 @@ class FileUtils implements I.IFileUtils {
         }
         catch {
 
-            throw new E.E_INVALID_JSON_FILE({ metadata: { file } });
+            throw new E.E_INVALID_JSON_FILE({ file });
         }
     }
 

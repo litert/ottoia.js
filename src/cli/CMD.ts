@@ -21,7 +21,7 @@ new OttoiaCLI().main().catch((e) => {
 
     if (e?.toJSON) {
 
-        console.error(e.toJSON());
+        console.error(JSON.stringify(e.toJSON(), null, 2));
         process.exit(e.code);
     }
 

@@ -87,7 +87,7 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!this.isValidPackageName(name)) {
 
-            throw new E.E_INVALID_PACKAGE_NAME({ metadata: { name } });
+            throw new E.E_INVALID_PACKAGE_NAME({ name });
         }
     }
 
@@ -95,7 +95,7 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!this.isValidDependencyName(name)) {
 
-            throw new E.E_INVALID_PACKAGE_NAME({ metadata: { name } });
+            throw new E.E_INVALID_PACKAGE_NAME({ name });
         }
     }
 
@@ -118,7 +118,7 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!ret.version || !ret.raw.ottoia) {
 
-            throw new E.E_INVALID_ROOT_PACKAGE({ metadata: { path } });
+            throw new E.E_INVALID_ROOT_PACKAGE({ path });
         }
 
         ret.ottoiaOptions = ret.raw.ottoia;
@@ -132,7 +132,7 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!isNodePackage(packageJson)) {
 
-            throw new E.E_INVALID_PACKAGE({ metadata: { path } });
+            throw new E.E_INVALID_PACKAGE({ path });
         }
 
         return {
@@ -156,14 +156,14 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!/(@[a-z0-9][-\w]*\/)?[a-z0-9][-.\w]*/.test(opts.name)) {
 
-            throw new E.E_INVALID_PACKAGE_NAME({ metadata: { name: opts.name } });
+            throw new E.E_INVALID_PACKAGE_NAME({ name: opts.name });
         }
 
         const pkgRoot = this._fs.concatPath(opts.root, opts.dirName ?? opts.name);
 
         if (await this._fs.exists(pkgRoot)) {
 
-            throw new E.E_DUP_PACKAGE({ metadata: { name: opts.name } });
+            throw new E.E_DUP_PACKAGE({ name: opts.name });
         }
 
         if (opts.templateFile === undefined) {
@@ -182,14 +182,14 @@ class PackageUtils implements I.IPackageUtils {
 
         if (!await this._fs.existsFile(opts.templateFile)) {
 
-            throw new E.E_INVALID_TEMPLATE({ metadata: { template: opts.templateFile } });
+            throw new E.E_INVALID_TEMPLATE({ template: opts.templateFile });
         }
 
         const tplFileList = await this._fs.readJsonFile<TemplateFileList>(opts.templateFile);
 
         if (!isTemplateFileList(tplFileList)) {
 
-            throw new E.E_INVALID_TEMPLATE({ metadata: { template: opts.templateFile } });
+            throw new E.E_INVALID_TEMPLATE({ template: opts.templateFile });
         }
 
         await this._fs.mkdirP(pkgRoot);

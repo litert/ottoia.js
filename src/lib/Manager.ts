@@ -113,7 +113,7 @@ class OttoiaManager implements C.IManager {
 
         if (!cfg) {
 
-            throw new E.E_RELEASE_CONFIG_NOT_FOUND({ metadata: { env: opts.env } });
+            throw new E.E_RELEASE_CONFIG_NOT_FOUND({ env: opts.env });
         }
 
         this._logs.debug1(`Release to tag "${cfg.tag}".`);
@@ -302,7 +302,7 @@ class OttoiaManager implements C.IManager {
             if (localPkg.noRelease) {
 
                 throw new E.E_PRIVATE_DEPENDENCY({
-                    metadata: { package: pkgName, dependency: depName }
+                    package: pkgName, dependency: depName
                 });
             }
 
@@ -315,7 +315,7 @@ class OttoiaManager implements C.IManager {
         if (!v) {
 
             throw new E.E_DEP_NOT_LOCKED({
-                metadata: { package: pkgName, dependency: depName }
+                package: pkgName, dependency: depName
             });
         }
 
@@ -537,7 +537,7 @@ class OttoiaManager implements C.IManager {
 
             if (!ensured) {
 
-                throw new E.E_EXISTING_PACKAGE_JSON({ metadata: { path: PATH_TO_ROOT_JSON } });
+                throw new E.E_EXISTING_PACKAGE_JSON({ path: PATH_TO_ROOT_JSON });
             }
         }
 
@@ -628,7 +628,7 @@ class OttoiaManager implements C.IManager {
 
                 if (newPath === curPath) {
 
-                    throw new E.E_NO_ROOT_PACKAGE({ metadata: { cwd: this._root } });
+                    throw new E.E_NO_ROOT_PACKAGE({ cwd: this._root });
                 }
 
                 curPath = newPath;
@@ -681,10 +681,10 @@ class OttoiaManager implements C.IManager {
 
                     if (aliases[pkg.alias]) {
 
-                        throw new E.E_DUP_PACKAGE_ALIAS({ metadata: {
+                        throw new E.E_DUP_PACKAGE_ALIAS({
                             alias: pkg.alias,
                             packages: [ pkg.name, aliases[pkg.alias] ]
-                        } });
+                        });
                     }
 
                     aliases[pkg.alias] = pkg.name;
@@ -694,7 +694,7 @@ class OttoiaManager implements C.IManager {
 
                 if (!E.errorRegistry.identify(e)) {
 
-                    throw new E.E_INVALID_PACKAGE({ metadata: { path: p } });
+                    throw new E.E_INVALID_PACKAGE({ path: p });
                 }
 
                 throw e;
@@ -715,7 +715,7 @@ class OttoiaManager implements C.IManager {
         const pkg = this._getPackage(name, true);
 
         if (!pkg) {
-            throw new E.E_PACKAGE_NOT_FOUND({ metadata: { name } });
+            throw new E.E_PACKAGE_NOT_FOUND({ name });
         }
 
         return {
@@ -748,7 +748,7 @@ class OttoiaManager implements C.IManager {
                     return this._packages['?'];
                 }
 
-                throw new E.E_PACKAGE_NOT_FOUND({ metadata: { alias: nameOrAlias } });
+                throw new E.E_PACKAGE_NOT_FOUND({ alias: nameOrAlias });
             }
 
             nameOrAlias = this._aliases[nameOrAlias];
@@ -760,7 +760,7 @@ class OttoiaManager implements C.IManager {
 
             this._logs.debug2(`Package "${nameOrAlias}" does not exist.`);
 
-            throw new E.E_PACKAGE_NOT_FOUND({ metadata: { name: nameOrAlias } });
+            throw new E.E_PACKAGE_NOT_FOUND({ name: nameOrAlias });
         }
 
         this._logs.debug2(`Fetched package "${nameOrAlias}".`);
@@ -789,7 +789,7 @@ class OttoiaManager implements C.IManager {
 
             this._logs.debug1(`Sub package "${name}" already exists.`);
 
-            throw new E.E_DUP_PACKAGE({ metadata: { name } });
+            throw new E.E_DUP_PACKAGE({ name });
         }
 
         if (aliasName && this._aliases[aliasName]) {
@@ -797,10 +797,8 @@ class OttoiaManager implements C.IManager {
             this._logs.debug1(`Alias "${aliasName}" of sub package "${name}" already exists.`);
 
             throw new E.E_DUP_PACKAGE_ALIAS({
-                metadata: {
-                    alias: aliasName,
-                    packages: [ this._aliases[aliasName] ]
-                }
+                alias: aliasName,
+                packages: [ this._aliases[aliasName] ]
             });
         }
 
@@ -826,7 +824,7 @@ class OttoiaManager implements C.IManager {
 
         if (unkPkgs.length) {
 
-            throw new E.E_UNKNOWN_SUB_PACKAGE({ metadata: { packages: unkPkgs } });
+            throw new E.E_UNKNOWN_SUB_PACKAGE({ packages: unkPkgs });
         }
     }
 
@@ -880,7 +878,7 @@ class OttoiaManager implements C.IManager {
         if (REMOTE_DEPS.length + LOCAL_DEPS.length !== deps.length) {
 
             throw new E.E_INVALID_PACKAGE_NAME({
-                metadata: { deps: deps.filter((v) => !REMOTE_DEPS.includes(v) && !LOCAL_DEPS.includes(v)) }
+                deps: deps.filter((v) => !REMOTE_DEPS.includes(v) && !LOCAL_DEPS.includes(v))
             });
         }
 
@@ -951,7 +949,7 @@ class OttoiaManager implements C.IManager {
                             || depPath.includes(ldp.name)
                         ) {
 
-                            throw new E.E_RECURSIVE_DEP({ metadata: { package: p.name, dependency: ldp.name } });
+                            throw new E.E_RECURSIVE_DEP({ package: p.name, dependency: ldp.name });
                         }
 
                         if (!noSave) {
@@ -1130,8 +1128,8 @@ class OttoiaManager implements C.IManager {
 
         if (REMOTE_DEPS.length + LOCAL_DEPS.length !== deps.length) {
 
-            throw new E.E_INVALID_PACKAGE_NAME({
-                metadata: { deps: deps.filter((v) => !REMOTE_DEPS.includes(v) && !LOCAL_DEPS.includes(v)) }
+            throw new E.E_DEP_NOT_FOUND({
+                deps: deps.filter((v) => !REMOTE_DEPS.includes(v) && !LOCAL_DEPS.includes(v))
             });
         }
 
