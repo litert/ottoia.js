@@ -1,5 +1,10 @@
 # Changes Logs
 
+## v0.3.2
+
+-   fix(cmd:install): resolve dep using alias correctly.
+-   fix(cmd:uninstall): resolve dep using alias correctly.
+
 ## v0.3.1
 
 -   fix(cmd:install): resolve dep tag/version correctly.

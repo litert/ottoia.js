@@ -57,7 +57,7 @@ class PackageUtils implements I.IPackageUtils {
 
     public parseDependency(expr: string): I.IDependency {
 
-        const re = /^((@[-.\w]+\/)?([-.\w]+))(@[-.\w]+\/)?/.exec(expr);
+        const re = /^((@([-.\w]+\/|@))?([-.\w]+))(@([-.\w]+))?/.exec(expr);
 
         if (!re) {
 
@@ -66,7 +66,7 @@ class PackageUtils implements I.IPackageUtils {
 
         return {
             name: re[1],
-            tag: re[4] ?? 'latest',
+            tag: re[6] ?? 'latest',
             expr
         };
     }
