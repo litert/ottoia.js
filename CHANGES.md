@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.3
+
+-   fix(cmd:release): use correct semver for non-local dependencies.
+
 ## v0.3.2
 
 -   fix(cmd:install): resolve dep using alias correctly.

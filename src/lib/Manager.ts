@@ -309,10 +309,25 @@ class OttoiaManager implements C.IManager {
             return localPkg.version!;
         }
 
-        const v = this._rootPkg.packageLock.packages[`node_modules/${depName}`]?.version ??
-            this._rootPkg.raw.dependencies[depName];
+        let v = '';
 
-        if (!v) {
+        if (this._rootPkg.packageLock.packages[`node_modules/${depName}`]) {
+
+            const depVer = this._rootPkg.packageLock.packages?.[''].dependencies?.[depName] ??
+                this._rootPkg.packageLock.packages?.[''].peerDependencies?.[depName] ??
+                this._rootPkg.raw.dependencies?.[depName] ??
+                this._rootPkg.raw.peerDependencies?.[depName] ??
+                '';
+
+            const semverFlag = depVer ? /^(\^|~|>=|>|=|<|<=)/.exec(depVer)?.[1] ?? '' : '^';
+
+            v = `${semverFlag}${this._rootPkg.packageLock.packages[`node_modules/${depName}`].version}`;
+        }
+        else if (this._rootPkg.raw.dependencies?.[depName]) {
+
+            v = this._rootPkg.raw.dependencies[depName];
+        }
+        else {
 
             throw new E.E_DEP_NOT_LOCKED({
                 package: pkgName, dependency: depName

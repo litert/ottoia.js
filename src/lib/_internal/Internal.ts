@@ -109,7 +109,14 @@ export interface IRootPackage extends IPackage {
 
     version: string;
 
-    packageLock: { packages: Record<string, { version: string; }>; };
+    packageLock: {
+        packages: Record<string, {
+            version: string;
+            dependencies: Record<string, string>;
+            devDependencies: Record<string, string>;
+            peerDependencies: Record<string, string>;
+        }>;
+    };
 
     ottoiaOptions: IPackageOttoiaOptions;
 }
