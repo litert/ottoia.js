@@ -17,6 +17,7 @@ module.exports = {
             'cmd:release',
             'cmd:recall',
             'cmd:show',
+            'cmd:run',
             'skeleton',
             'log',
             'internal',

@@ -62,7 +62,6 @@ export default class OttoiaCLI {
                 break;
             }
             case 'run': {
-                console.log(this._cla.flags);
                 await this._ottoia.runCommand(
                     this._cla.options.package ?? [],
                     this._cla.arguments[0],

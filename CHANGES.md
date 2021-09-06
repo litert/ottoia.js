@@ -3,6 +3,7 @@
 ## v0.3.3
 
 -   fix(cmd:release): use correct semver for non-local dependencies.
+-   fix(cmd:run): removed useless output.
 
 ## v0.3.2
 
