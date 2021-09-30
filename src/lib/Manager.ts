@@ -1273,11 +1273,14 @@ class OttoiaManager implements C.IManager {
         }
     }
 
-    public async bootstrap(): Promise<void> {
+    public async bootstrap(noInstall: boolean): Promise<void> {
 
         this._npm.chdir(this._root);
 
-        await this._npm.bootstrap();
+        if (!noInstall) {
+
+            await this._npm.bootstrap();
+        }
 
         await this._bootstrapLocal();
     }

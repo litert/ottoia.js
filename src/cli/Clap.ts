@@ -198,7 +198,13 @@ function createCLAParser(): $Clap.IHelper {
         .addCommand({
             name: 'bootstrap',
             description: 'Install all dependencies for all projects.'
-        });
+        }, (helper) => helper
+            .addFlag({
+                name: 'no-install',
+                description: 'Don\'t execute `npm install`.',
+                shortcut: 'N'
+            })
+        );
 }
 
 export default function parseCLA(): $Clap.IParseResult | null {

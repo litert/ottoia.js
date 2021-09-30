@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.4
+
+-   feat(cmd:bootstrap): added `--no-install` flag.
+
 ## v0.3.3
 
 -   fix(cmd:release): use correct semver for non-local dependencies.
