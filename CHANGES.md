@@ -4,6 +4,7 @@
 
 -   fix(cmd:release): use correct semver for non-local dependencies.
 -   fix(cmd:run): removed useless output.
+-   fix(cmd:clean): no executing native `scripts.clean` anymore.
 
 ## v0.3.2
 

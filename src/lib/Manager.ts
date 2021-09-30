@@ -1219,9 +1219,7 @@ class OttoiaManager implements C.IManager {
         }
         else if (pkg.scripts['clean']) {
 
-            this._logs.debug1(`Executing NPM script "clean" for sub package "${pkg.name}"...`);
-
-            await this._npm.run('clean', []);
+            this._logs.debug1(`Ignored NPM script "clean" for sub package "${pkg.name}"...`);
         }
 
         if (full) {
@@ -1264,11 +1262,7 @@ class OttoiaManager implements C.IManager {
         }
         else if (this._rootPkg.scripts['clean']) {
 
-            this._npm.chdir(this._root);
-
-            this._logs.debug1('Executing NPM script "clean" for root package...');
-
-            await this._npm.run('clean', []);
+            this._logs.debug1('Ignored NPM script "clean" for root package...');
         }
 
         if (full) {
