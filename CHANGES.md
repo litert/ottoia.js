@@ -3,6 +3,7 @@
 ## v0.3.5
 
 -   feat(cmd:release): allow `*` for any version of dependencies.
+-   fix(cmd:bootstrap): should install local devDependencies.
 
 ## v0.3.4
 

@@ -1307,10 +1307,10 @@ class OttoiaManager implements C.IManager {
 
     private _extractDeps(pkg: I.IPackage, productionOnly: boolean): string[] {
 
-        const deps = [...Object.keys(pkg.dependencies)];
+        const deps = [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)];
         if (!productionOnly) {
 
-            deps.push(...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies));
+            deps.push(...Object.keys(pkg.devDependencies));
         }
 
         return Array.from(new Set(deps));
