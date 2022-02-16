@@ -357,39 +357,42 @@ class OttoiaManager implements C.IManager {
 
         for (const pkgName in this._packages) {
 
-            const pkg = this._packages[pkgName];
+            const p = this._packages[pkgName];
 
-            if (pkg.noRelease) {
+            if (p.noRelease) {
 
                 continue;
             }
 
-            pkg.raw.version = pkg.version = version;
+            p.raw.version = p.version = version;
 
-            for (const depName in pkg.raw.dependencies) {
+            for (const deps of [p.raw.peerDependencies, p.raw.dependencies]) {
 
-                pkg.raw.dependencies[depName] = this._getDependencyVersion(depName, pkgName);
-                this._logs.debug3(`Use "${depName}@${pkg.raw.dependencies[depName]}" for package "${pkg.name}".`);
-            }
+                for (const depName in deps) {
 
-            for (const depName in pkg.raw.peerDependencies) {
+                    if (deps[depName] === '*') {
+                        this._logs.debug3(`Use "${depName}@*" for package "${p.name}".`);
+                    }
+                    else {
 
-                pkg.raw.peerDependencies[depName] = this._getDependencyVersion(depName, pkgName);
-                this._logs.debug3(`Use "${depName}@${pkg.raw.dependencies[depName]}" for package "${pkg.name}".`);
+                        deps[depName] = this._getDependencyVersion(depName, pkgName);
+                        this._logs.debug3(`Use "${depName}@${p.raw.dependencies[depName]}" for package "${p.name}".`);
+                    }
+                }
             }
 
             for (const hookName of NPM_HOOKS) {
 
-                if (pkg.raw.scripts?.[hookName]) {
+                if (p.raw.scripts?.[hookName]) {
 
                     this._logs.debug2(`Ignored NPM built-in hook script "${hookName}".`);
-                    delete pkg.raw.scripts?.[hookName];
+                    delete p.raw.scripts?.[hookName];
                 }
             }
 
             await this._fs.writeFile(
-                this._fs.concatPath(pkg.root, 'package.json'),
-                JSON.stringify(pkg.raw, null, 2)
+                this._fs.concatPath(p.root, 'package.json'),
+                JSON.stringify(p.raw, null, 2)
             );
         }
     }

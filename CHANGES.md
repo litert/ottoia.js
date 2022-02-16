@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.5
+
+-   feat(cmd:release): allow `*` for any version of dependencies.
+
 ## v0.3.4
 
 -   feat(cmd:bootstrap): added `--no-install` flag.
