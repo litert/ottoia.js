@@ -2,8 +2,10 @@
 
 ## v0.3.5
 
+-   feat(cmd:release): use custom registry for each release profile.
 -   feat(cmd:release): allow `*` for any version of dependencies.
 -   fix(cmd:bootstrap): should install local devDependencies.
+-   fix(cmd:recall): use registry from release config.
 
 ## v0.3.4
 

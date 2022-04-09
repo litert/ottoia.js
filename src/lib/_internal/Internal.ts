@@ -53,6 +53,8 @@ export interface INPMPackage {
 
     'scripts'?: Record<string, string>;
 
+    'publishConfig'?: Record<string, string>;
+
     'dependencies': Record<string, string>;
 
     'access'?: 'public' | 'private';

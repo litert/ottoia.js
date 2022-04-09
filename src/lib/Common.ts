@@ -38,6 +38,8 @@ export interface IPackage {
 
 export interface IRecallOptions {
 
+    release: string;
+
     version: string;
 
     confirmed: boolean;

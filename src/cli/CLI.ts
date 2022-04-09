@@ -87,7 +87,8 @@ export default class OttoiaCLI {
             }
             case 'recall': {
                 await this._ottoia.recall({
-                    version: this._cla.arguments[0],
+                    release: this._cla.arguments[0],
+                    version: this._cla.arguments[1],
                     confirmed: !!this._cla.flags['confirm'],
                 });
                 break;

@@ -114,9 +114,11 @@ class NPMHelper implements I.INPMHelper {
         return ret;
     }
 
-    public async run(cmdName: string, args: any[]): Promise<string> {
+    public async run(cmdName: string): Promise<string> {
 
-        const ret = await this._fs.execAt(this._cwd, 'npm', 'run', cmdName, ...args);
+        const cmd = (await this._fs.readJsonFile(`${this._cwd}/package.json`) as any).scripts[cmdName];
+
+        const ret = await this._fs.execAt(this._cwd, 'bash', '-c', cmd);
 
         return `${ret.stderr}\n${ret.stdout}`;
     }

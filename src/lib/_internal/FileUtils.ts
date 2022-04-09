@@ -48,7 +48,7 @@ class FileUtils implements I.IFileUtils {
 
         const oldCWD = process.cwd();
 
-        const cmdline = [cmd, ...args].map((v) => v.includes(' ') ? `"${v}"` : v).join(' ');
+        const cmdline = [cmd, ...args].map((v) => v.includes(' ') ? `"${v.replace(/"/g, '\\"')}"` : v).join(' ');
 
         this._logs.debug3(`Command[${CMD_ID}]: Created - ${cmdline}`);
 

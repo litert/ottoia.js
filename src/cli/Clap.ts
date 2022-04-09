@@ -142,8 +142,8 @@ function createCLAParser(): $Clap.IHelper {
         .addCommand({
             name: 'recall',
             description: 'Recall a released version.',
-            minArguments: 1,
-            maxArguments: 1
+            minArguments: 2,
+            maxArguments: 2
         }, (helper) => helper
             .addFlag({
                 'name': 'confirm',

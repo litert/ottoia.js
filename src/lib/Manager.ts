@@ -88,6 +88,13 @@ class OttoiaManager implements C.IManager {
 
     public async recall(opts: C.IRecallOptions): Promise<void> {
 
+        const cfg = this._rootPkg.ottoiaOptions.releases[opts.release];
+
+        if (!cfg) {
+
+            throw new E.E_RELEASE_CONFIG_NOT_FOUND({ env: opts.release });
+        }
+
         const pkgs = Object.values(this._packages).filter((v) => !v.noRelease);
 
         const version: string = opts.version?.replace(/^v/, '');
@@ -97,6 +104,11 @@ class OttoiaManager implements C.IManager {
         if (!opts.confirmed) {
 
             args.push('--dry-run');
+        }
+
+        if (cfg.registry) {
+
+            args.push('--registry', `'${cfg.registry}'`);
         }
 
         for (const p of pkgs) {
@@ -181,7 +193,7 @@ class OttoiaManager implements C.IManager {
 
             this._logs.debug1('Setting up dependency versions...');
 
-            await this._setupDependencies(version);
+            await this._setupDependencies(version, cfg);
 
             this._logs.debug1('Preparing packages...');
 
@@ -215,6 +227,11 @@ class OttoiaManager implements C.IManager {
                 if (!pkg.privateAccess) {
 
                     extArgs.push('--access=public');
+                }
+
+                if (cfg.registry) {
+
+                    extArgs.push(`--registry`, `'${cfg.registry}'`);
                 }
 
                 this._logs.debug1(await this._npm.publish(extArgs));
@@ -340,7 +357,7 @@ class OttoiaManager implements C.IManager {
     /**
      * Setup the dependencies of each package.
      */
-    private async _setupDependencies(version: string): Promise<void> {
+    private async _setupDependencies(version: string, cfg: I.IReleaseOptions): Promise<void> {
 
         for (const pkgName in this._packages) {
 
@@ -390,11 +407,30 @@ class OttoiaManager implements C.IManager {
                 }
             }
 
+            this._setupPublishConfig(p.raw, cfg);
+
             await this._fs.writeFile(
                 this._fs.concatPath(p.root, 'package.json'),
                 JSON.stringify(p.raw, null, 2)
             );
         }
+    }
+
+    private _setupPublishConfig(pkg: I.INPMPackage, cfg: I.IReleaseOptions): void {
+
+        if (!cfg.registry) {
+
+            return;
+        }
+
+        pkg.publishConfig = {};
+
+        if (pkg.name.includes('/')) {
+
+            pkg.publishConfig[`${pkg.name.split('/')[0]}:registry`] = cfg.registry;
+        }
+
+        pkg.publishConfig.registry = cfg.registry;
     }
 
     private async _createPackageJsonBackup(): Promise<void> {
