@@ -204,6 +204,10 @@ function createCLAParser(): $Clap.IHelper {
                 description: 'Don\'t execute `npm install`.',
                 shortcut: 'N'
             })
+            .addFlag({
+                name: 'ci',
+                description: 'Use `npm ci` command.',
+            })
         );
 }
 

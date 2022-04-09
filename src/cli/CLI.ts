@@ -59,7 +59,8 @@ export default class OttoiaCLI {
             }
             case 'bootstrap': {
                 await this._ottoia.bootstrap(
-                    !!this._cla.flags['no-install']
+                    !!this._cla.flags['no-install'],
+                    !!this._cla.flags['ci'],
                 );
                 break;
             }

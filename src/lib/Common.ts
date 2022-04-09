@@ -103,7 +103,7 @@ export interface IManager {
 
     clean(project?: string[], completely?: boolean): Promise<void>;
 
-    bootstrap(noInstall: boolean): Promise<void>;
+    bootstrap(noInstall: boolean, useCI: boolean): Promise<void>;
 
     // publish(
     //     packages: string[],

@@ -59,6 +59,11 @@ class NPMHelper implements I.INPMHelper {
         await this._fs.execAt(this._cwd, 'npm', 'install');
     }
 
+    public async bootstrapCI(): Promise<void> {
+
+        await this._fs.execAt(this._cwd, 'npm', 'ci');
+    }
+
     public async install(dependencies: I.IDependency[], peer?: boolean, dev?: boolean): Promise<void> {
 
         if (!dependencies.length) {

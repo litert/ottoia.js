@@ -85,6 +85,8 @@ export interface INPMHelper {
 
     bootstrap(): Promise<void>;
 
+    bootstrapCI(): Promise<void>;
+
     install(dependencies: IDependency[], peer?: boolean, dev?: boolean): Promise<void>;
 
     run(cmdName: string, args: any[]): Promise<string>;
