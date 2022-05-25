@@ -156,6 +156,8 @@ class NPMHelper implements I.INPMHelper {
         const hReq = await this._hCli.request({
             'url': `https://registry.npmjs.com/${pkgName}`,
             'method': 'GET',
+            'version': 1.1,
+            'keepAlive': false,
             'gzip': false
         });
 

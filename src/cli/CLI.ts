@@ -151,6 +151,11 @@ export default class OttoiaCLI {
                 break;
             }
         }
+
+        if (this._cla.flags['debug-force-quit']) {
+
+            process.exit(0);
+        }
     }
 
     private _printPackageInfo(pkg: $Ottoia.IPackage): void {

@@ -37,6 +37,10 @@ function createCLAParser(): $Clap.IHelper {
             'shortcut': 'v',
             'description': 'Display debug logs.'
         })
+        .addFlag({
+            'name': 'debug-force-quit',
+            'description': '[DEBUG] Force process to quit at the end.'
+        })
         .addCommand({
             name: 'create',
             description: 'Create a new sub package.',

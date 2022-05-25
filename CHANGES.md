@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.6
+
+-   fix(cmd:release): process get stuck after release.
+
 ## v0.3.5
 
 -   feat(cmd:release): use custom registry for each release profile.
