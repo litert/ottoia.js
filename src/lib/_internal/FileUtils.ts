@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Angus.Fenying <fenying@litert.org>
+ * Copyright 2023 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import * as E from '../Errors';
 import { promises as $FS } from 'fs';
 import * as $Path from 'path';
 import * as $ChildProcess from 'child_process';
+
+const SHELL_WRAPPING_CHARS = /[^-~\w.]/;
 
 class FileUtils implements I.IFileUtils {
 
@@ -48,7 +50,9 @@ class FileUtils implements I.IFileUtils {
 
         const oldCWD = process.cwd();
 
-        const cmdline = [cmd, ...args].map((v) => v.includes(' ') ? `"${v.replace(/"/g, '\\"')}"` : v).join(' ');
+        const cmdline = [cmd, ...args]
+            .map((v) => SHELL_WRAPPING_CHARS.test(v) ? `'${v.replace(/([\\'])/g, '\\$1')}'` : v)
+            .join(' ');
 
         this._logs.debug3(`Command[${CMD_ID}]: Created - ${cmdline}`);
 

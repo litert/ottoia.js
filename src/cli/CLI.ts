@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Angus.Fenying <fenying@litert.org>
+ * Copyright 2023 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,13 @@ export default class OttoiaCLI {
                     release: this._cla.arguments[0],
                     version: this._cla.arguments[1],
                     confirmed: !!this._cla.flags['confirm'],
+                });
+                break;
+            }
+            case 'deprecate': {
+                await this._ottoia.deprecate({
+                    scope: this._cla.arguments[0],
+                    message: this._cla.arguments[1],
                 });
                 break;
             }

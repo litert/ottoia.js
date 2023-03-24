@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.7
+
+-   feat(cmd:deprecate): added deprecate command.
+
 ## v0.3.6
 
 -   fix(cmd:release): process get stuck after release.

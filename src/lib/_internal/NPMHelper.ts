@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Angus.Fenying <fenying@litert.org>
+ * Copyright 2023 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,6 +138,13 @@ class NPMHelper implements I.INPMHelper {
     public async unpublish(args: any[]): Promise<string> {
 
         const ret = await this._fs.execAt(this._cwd, 'npm', 'unpublish', ...args);
+
+        return `${ret.stderr}\n${ret.stdout}`;
+    }
+
+    public async deprecate(args: any[]): Promise<string> {
+
+        const ret = await this._fs.execAt(this._cwd, 'npm', 'deprecate', ...args);
 
         return `${ret.stderr}\n${ret.stdout}`;
     }

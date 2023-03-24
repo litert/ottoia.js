@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Angus.Fenying <fenying@litert.org>
+ * Copyright 2023 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,20 @@ class OttoiaManager implements C.IManager {
             this._logs.info(`Recalling ${p.name}@${version}...`);
 
             await this._npm.unpublish([...args, `${p.name}@${version}`]);
+        }
+    }
+
+    public async deprecate(opts: C.IDeprecateOptions): Promise<void> {
+
+        const pkgs = Object.values(this._packages).filter((v) => !v.noRelease);
+
+        const args: string[] = [];
+
+        for (const p of pkgs) {
+
+            this._logs.info(`Deprecating ${p.name}@${opts.scope}...`);
+
+            await this._npm.deprecate([...args, `${p.name}@${opts.scope}`, opts.message]);
         }
     }
 

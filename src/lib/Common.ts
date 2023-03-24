@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Angus.Fenying <fenying@litert.org>
+ * Copyright 2023 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,13 @@ export interface IRecallOptions {
     confirmed: boolean;
 }
 
+export interface IDeprecateOptions {
+
+    scope: string;
+
+    message: string;
+}
+
 export interface IReleaseOptions {
 
     env: string;
@@ -83,6 +90,8 @@ export interface IManager {
     release(opts: IReleaseOptions): Promise<void>;
 
     recall(opts: IRecallOptions): Promise<void>;
+
+    deprecate(opts: IDeprecateOptions): Promise<void>;
 
     getPackage(name: string): IPackage;
 

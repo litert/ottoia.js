@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Angus.Fenying <fenying@litert.org>
+ * Copyright 2023 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +154,12 @@ function createCLAParser(): $Clap.IHelper {
                 'description': 'Confirmation of recall. Otherwise, --dry-run will be used.'
             })
         )
+        .addCommand({
+            name: 'deprecate',
+            description: 'Mark a scoped release as deprecated.',
+            minArguments: 2,
+            maxArguments: 2
+        })
         .addCommand({
             name: 'show',
             description: 'Display the information of specific packages.'
