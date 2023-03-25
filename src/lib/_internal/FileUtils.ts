@@ -20,8 +20,6 @@ import { promises as $FS } from 'fs';
 import * as $Path from 'path';
 import * as $ChildProcess from 'child_process';
 
-const SHELL_WRAPPING_CHARS = /[^-~\w.]/;
-
 class FileUtils implements I.IFileUtils {
 
     private _cmdId = Date.now();
@@ -50,9 +48,7 @@ class FileUtils implements I.IFileUtils {
 
         const oldCWD = process.cwd();
 
-        const cmdline = [cmd, ...args]
-            .map((v) => SHELL_WRAPPING_CHARS.test(v) ? `'${v.replace(/([\\'])/g, '\\$1')}'` : v)
-            .join(' ');
+        const cmdline = [cmd, ...args].map((v) => /[ <>]/.test(v) ? `"${v.replace(/"/g, '\\"')}"` : v).join(' ');
 
         this._logs.debug3(`Command[${CMD_ID}]: Created - ${cmdline}`);
 

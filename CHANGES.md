@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.8
+
+-   fix(skeleton): fixed command arguments processing.
+
 ## v0.3.7
 
 -   feat(cmd:deprecate): added deprecate command.
