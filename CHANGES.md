@@ -2,6 +2,7 @@
 
 ## v0.3.8
 
+-   fix(cmd:deprecate): allow empty message to undeprecate versions.
 -   fix(skeleton): fixed command arguments processing.
 
 ## v0.3.7

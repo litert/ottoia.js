@@ -129,7 +129,7 @@ class OttoiaManager implements C.IManager {
 
             this._logs.info(`Deprecating ${p.name}@${opts.scope}...`);
 
-            await this._npm.deprecate([...args, `${p.name}@${opts.scope}`, opts.message]);
+            await this._npm.deprecate([...args, `${p.name}@${opts.scope}`, opts.message || '""']);
         }
     }
 
