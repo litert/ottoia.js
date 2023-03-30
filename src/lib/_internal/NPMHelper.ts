@@ -19,6 +19,7 @@ import * as C from '../Common';
 import * as E from '../Errors';
 import * as $AsyncUtils from './AsyncUtils';
 import * as $Http from '@litert/http-client';
+import * as Path from 'node:path';
 
 class NPMHelper implements I.INPMHelper {
 
@@ -220,18 +221,16 @@ class NPMHelper implements I.INPMHelper {
 
         await this._fs.mkdirP(this._fs.concatPath(this._cwd, 'node_modules'));
 
-        const pkgParentPath = pkgName.split('/').slice(0, -1).join('/');
-
-        if (pkgParentPath) {
-
-            await this._fs.mkdirP(this._fs.concatPath(this._cwd, 'node_modules', pkgParentPath));
-        }
-
         const PATH_TO_LINK = this._fs.concatPath(this._cwd, 'node_modules', pkgName);
+
+        const pkgParentPath = Path.dirname(PATH_TO_LINK);
+        const pkgSymLinkName = Path.basename(PATH_TO_LINK);
+
+        await this._fs.mkdirP(pkgParentPath);
 
         if (!await this._fs.exists(PATH_TO_LINK)) {
 
-            await this._fs.execAt(this._cwd, 'ln', '-s', path, PATH_TO_LINK);
+            await this._fs.execAt(pkgParentPath, 'ln', '-s', Path.relative(pkgParentPath, path), pkgSymLinkName);
         }
     }
 

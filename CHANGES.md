@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.9
+
+-   fix(cmd:install): use relative path for symbol links.
+
 ## v0.3.8
 
 -   fix(cmd:deprecate): allow empty message to undeprecate versions.
