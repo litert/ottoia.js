@@ -35,6 +35,11 @@ export interface IReleaseOptions {
 export interface IPackageOttoiaOptions {
 
     releases: Record<string, IReleaseOptions>;
+
+    /**
+     * @default 'full'
+     */
+    versionLock?: 'major' | 'minor' | 'full';
 }
 
 export interface INPMPackage {

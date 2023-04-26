@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.10
+
+-   feat(cmd:release): allow customize the lock for versions.
+
 ## v0.3.9
 
 -   fix(cmd:install): use relative path for symbol links.

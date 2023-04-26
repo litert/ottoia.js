@@ -383,7 +383,18 @@ class OttoiaManager implements C.IManager {
                 continue;
             }
 
-            pkg.raw.version = pkg.version = version;
+            switch (this._rootPkg.ottoiaOptions.versionLock ?? 'full') {
+                default:
+                case 'full':
+                    pkg.raw.version = pkg.version = version;
+                    break;
+                case 'major':
+                    pkg.raw.version = pkg.version = `^${version}`;
+                    break;
+                case 'minor':
+                    pkg.raw.version = pkg.version = `~${version}`;
+                    break;
+            }
         }
 
         for (const pkgName in this._packages) {
