@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.11
+
+-   fix(cmd:release): fix customized the lock for versions.
+
 ## v0.3.10
 
 -   feat(cmd:release): allow customize the lock for versions.

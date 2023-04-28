@@ -337,7 +337,15 @@ class OttoiaManager implements C.IManager {
                 });
             }
 
-            return localPkg.version!;
+            switch (this._rootPkg.ottoiaOptions.versionLock ?? 'full') {
+                default:
+                case 'full':
+                    return localPkg.version!;
+                case 'major':
+                    return `^${localPkg.version!}`;
+                case 'minor':
+                    return `~${localPkg.version!}`;
+            }
         }
 
         let v = '';
@@ -383,18 +391,7 @@ class OttoiaManager implements C.IManager {
                 continue;
             }
 
-            switch (this._rootPkg.ottoiaOptions.versionLock ?? 'full') {
-                default:
-                case 'full':
-                    pkg.raw.version = pkg.version = version;
-                    break;
-                case 'major':
-                    pkg.raw.version = pkg.version = `^${version}`;
-                    break;
-                case 'minor':
-                    pkg.raw.version = pkg.version = `~${version}`;
-                    break;
-            }
+            pkg.raw.version = pkg.version = version;
         }
 
         for (const pkgName in this._packages) {
@@ -405,8 +402,6 @@ class OttoiaManager implements C.IManager {
 
                 continue;
             }
-
-            p.raw.version = p.version = version;
 
             for (const deps of [p.raw.peerDependencies, p.raw.dependencies]) {
 
