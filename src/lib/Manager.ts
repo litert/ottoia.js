@@ -410,10 +410,14 @@ class OttoiaManager implements C.IManager {
                     if (deps[depName] === '*') {
                         this._logs.debug3(`Use "${depName}@*" for package "${p.name}".`);
                     }
-                    else {
+                    else if (deps[depName] === DEP_VER_PLACE_HOLDER) {
 
                         deps[depName] = this._getDependencyVersion(depName, pkgName);
                         this._logs.debug3(`Use "${depName}@${p.raw.dependencies[depName]}" for package "${p.name}".`);
+                    }
+                    else {
+
+                        this._logs.warning(`Use "${depName}@${deps[depName]}" for package "${p.name}".`);
                     }
                 }
             }

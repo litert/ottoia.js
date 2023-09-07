@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.3.12
+
+-   fix(cmd:release): when version is specified as non "-", use it as-is.
+
 ## v0.3.11
 
 -   fix(cmd:release): fix customized the lock for versions.

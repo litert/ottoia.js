@@ -1,6 +1,6 @@
 {
   "name": "@litert/ottoia",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "A simple multi-repository package manager of node.",
   "main": "lib/index.js",
   "scripts": {
