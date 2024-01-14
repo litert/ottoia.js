@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+SCRIPT_ROOT=$(cd $(dirname $0); pwd)
+
+node --enable-source-maps $SCRIPT_ROOT/cli/CMD.js $@

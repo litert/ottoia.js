@@ -10,3 +10,4 @@
 /.eslintignore
 /commitlint.config.js
 /.husky/
+/exec

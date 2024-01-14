@@ -1,5 +1,11 @@
 # Changes Logs
 
+## v0.4.0
+
+-   renamed: settings `versioner` to `versionNamer` in `package.json`.
+-   build(project): upgraded dependencies.
+-   fix: show help info when no command specified.
+
 ## v0.3.12
 
 -   fix(cmd:release): when version is specified as non "-", use it as-is.

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Angus.Fenying <fenying@litert.org>
+ * Copyright 2024 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import * as $Clap from '@litert/clap';
 
-function createCLAParser(): $Clap.IHelper {
+function createClaParser(): $Clap.IHelper {
 
     const helper = $Clap.createHelper({
         // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -223,9 +223,9 @@ function createCLAParser(): $Clap.IHelper {
 
 export default function parseCLA(): $Clap.IParseResult | null {
 
-    const clap = createCLAParser();
+    const clap = createClaParser();
 
-    const result = clap.parseAndProcess(process.argv.slice(2));
+    const result = clap.parseAndProcess(process.argv.length === 2 ? ['-h'] : process.argv.slice(2));
 
     if (Array.isArray(result)) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Angus.Fenying <fenying@litert.org>
+ * Copyright 2024 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 import * as E from '../Errors';
 import * as I from './Internal';
 import * as $TyG from '@litert/typeguard';
-import validateNPMPackageName from 'validate-npm-package-name';
+import * as validateNPMPackageName from 'validate-npm-package-name';
 
 type TemplateFileList = Array<string | [string, string]>;
 
 const tgc = $TyG.createInlineCompiler();
 
-const isNodePackage = tgc.compile<I.INPMPackage>({
+const isNodePackage = tgc.compile<I.INpmPackage>({
     rule: {
         'name': 'string',
         'description?': 'string',
@@ -37,7 +37,7 @@ const isNodePackage = tgc.compile<I.INPMPackage>({
         'ottoia?': {
             'releases->{}': {
                 'tag': 'string',
-                'versioner?': 'string',
+                'versionNamer?': 'string',
                 'registry?': 'string'
             }
         }

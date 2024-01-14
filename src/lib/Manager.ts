@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Angus.Fenying <fenying@litert.org>
+ * Copyright 2024 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 import * as C from './Common';
 import * as I from './_internal';
 import * as E from './Errors';
+import * as $Logs from '@litert/logger';
 
 const DEP_VER_PLACE_HOLDER = '-';
 
@@ -45,42 +46,53 @@ class OttoiaManager implements C.IManager {
 
     private readonly _pkgUtils: I.IPackageUtils;
 
-    private readonly _npm: I.INPMHelper;
+    private readonly _npm: I.INpmHelper;
 
     private readonly _logs: I.ILogger;
 
     public constructor(private _root: string, verbose: number = 0) {
 
-        I.loggerFactory.unmute(['error', 'info', 'warning']);
+        const logSettings: $Logs.ILevelUpdateOptions<string, I.TLogLevel> = {
+
+            levels: ['error', 'info', 'warning'],
+            enabled: true,
+        };
+
+        I.loggerFactory.setLevelOptions({
+            levels: ['error', 'info', 'warning'],
+            enabled: true,
+        });
 
         if (verbose >= 4) {
 
-            I.loggerFactory.enableTrace(10);
+            logSettings.traceDepth = 5;
         }
         if (verbose >= 3) {
 
-            I.loggerFactory.unmute('debug3');
+            (logSettings.levels as I.TLogLevel[])!.push('debug3');
         }
         if (verbose >= 2) {
 
-            I.loggerFactory.unmute('debug2');
+            (logSettings.levels as I.TLogLevel[])!.push('debug2');
         }
         if (verbose >= 1) {
 
-            I.loggerFactory.unmute('debug1');
+            (logSettings.levels as I.TLogLevel[])!.push('debug1');
         }
 
-        this._logs = I.loggerFactory.createTextLogger('manager');
+        I.loggerFactory.setLevelOptions(logSettings);
 
-        this._fs = I.createFileUtility(I.loggerFactory.createTextLogger('fs'));
+        this._logs = I.loggerFactory.createLogger('Manager');
+
+        this._fs = I.createFileUtility(I.loggerFactory.createLogger('FS'));
 
         this._pkgUtils = I.createPackageUtils(
-            I.loggerFactory.createTextLogger('pkgutils'),
+            I.loggerFactory.createLogger('Pkg Utils'),
             this._fs
         );
 
         this._npm = I.createNPMHelper(
-            I.loggerFactory.createTextLogger('npm'),
+            I.loggerFactory.createLogger('NPM'),
             this._root,
             this._fs
         );
@@ -174,12 +186,12 @@ class OttoiaManager implements C.IManager {
                 version = this._rootPkg.version;
             }
 
-            const versioner = cfg.versioner ?
+            const versionNamer = cfg.versionNamer ?
                 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-                require(this._fs.concatPath(this._root, cfg.versioner)).default as C.IVersionNamer :
+                require(this._fs.concatPath(this._root, cfg.versionNamer)).default as C.IVersionNamer :
                 I.createBuiltInVersionNamer();
 
-            version = versioner.next(
+            version = versionNamer.next(
                 version,
                 opts.env,
                 opts.withBreakingChanges,
@@ -440,7 +452,7 @@ class OttoiaManager implements C.IManager {
         }
     }
 
-    private _setupPublishConfig(pkg: I.INPMPackage, cfg: I.IReleaseOptions): void {
+    private _setupPublishConfig(pkg: I.INpmPackage, cfg: I.IReleaseOptions): void {
 
         if (!cfg.registry) {
 
@@ -621,7 +633,7 @@ class OttoiaManager implements C.IManager {
 
         const rootJson = JSON.parse(await this._fs.readFile(PATH_TO_ROOT_JSON));
 
-        const ottoiaProjectJSON = await this._fs.readJsonFile<I.INPMPackage>(`${__dirname}/../package.json`);
+        const ottoiaProjectJSON = await this._fs.readJsonFile<I.INpmPackage>(`${__dirname}/../package.json`);
 
         rootJson.ottoia = true;
 
@@ -770,7 +782,7 @@ class OttoiaManager implements C.IManager {
             }
             catch (e) {
 
-                if (!E.errorRegistry.identify(e)) {
+                if (!(e instanceof E.OttoiaError)) {
 
                     throw new E.E_INVALID_PACKAGE({ path: p });
                 }
@@ -1053,7 +1065,7 @@ class OttoiaManager implements C.IManager {
                         this._npm.chdir(p.root);
 
                         /**
-                         * Install the indirected dependencies of the new installed dependencies.
+                         * Install the indirect dependencies of the new installed dependencies.
                          */
                         const indirectLocalDeps = this._extractLocalDeps(ldp, true);
 
@@ -1127,7 +1139,7 @@ class OttoiaManager implements C.IManager {
                 delete pkg.peerDependencies[depName];
 
                 /**
-                 * Unrefer the dependency to the sub packages.
+                 * Remove the dependency from the sub packages.
                  */
                 this._depCounters.remove(pkgName, deps);
             }

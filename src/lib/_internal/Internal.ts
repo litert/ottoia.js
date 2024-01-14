@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Angus.Fenying <fenying@litert.org>
+ * Copyright 2024 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,17 @@ export type TLogLevel = 'debug1' | 'debug2' | 'debug3' | 'info' | 'error' | 'war
 
 export type ILogger = $Logs.ILogger<string, TLogLevel>;
 
-export const loggerFactory = $Logs.createFactory<TLogLevel>(['debug1', 'debug2', 'debug3', 'info', 'error', 'warning']);
+export const loggerFactory = $Logs.createLoggerFactory<string, TLogLevel>(
+    ['debug1', 'debug2', 'debug3', 'info', 'error', 'warning']
+);
+
+loggerFactory.setLevelOptions({ enabled: false });
 
 export interface IReleaseOptions {
 
     tag: string;
 
-    versioner?: string;
+    versionNamer?: string;
 
     registry?: string;
 }
@@ -42,7 +46,7 @@ export interface IPackageOttoiaOptions {
     versionLock?: 'major' | 'minor' | 'full';
 }
 
-export interface INPMPackage {
+export interface INpmPackage {
 
     'name': string;
 
@@ -76,10 +80,10 @@ export interface IPackage extends C.IPackage {
 
     version?: string;
 
-    raw: INPMPackage;
+    raw: INpmPackage;
 }
 
-export interface INPMHelper {
+export interface INpmHelper {
 
     close(): void;
 
@@ -95,13 +99,13 @@ export interface INPMHelper {
 
     install(dependencies: IDependency[], peer?: boolean, dev?: boolean): Promise<void>;
 
-    run(cmdName: string, args: any[]): Promise<string>;
+    run(cmdName: string, args: string[]): Promise<string>;
 
-    publish(args: any[]): Promise<string>;
+    publish(args: string[]): Promise<string>;
 
-    unpublish(args: any[]): Promise<string>;
+    unpublish(args: string[]): Promise<string>;
 
-    deprecate(args: any[]): Promise<string>;
+    deprecate(args: string[]): Promise<string>;
 
     uninstall(dependencies: string[]): Promise<void>;
 
@@ -142,7 +146,7 @@ export interface IFileUtils {
 
     execAt(cwd: string, cmd: string, ...args: string[]): Promise<Record<'stdout' | 'stderr', string>>;
 
-    concatPath(...segs: string[]): string;
+    concatPath(...pieces: string[]): string;
 
     removeFile(path: string): Promise<void>;
 

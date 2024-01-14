@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Angus.Fenying <fenying@litert.org>
+ * Copyright 2024 Angus.Fenying <fenying@litert.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import * as $AsyncUtils from './AsyncUtils';
 import * as $Http from '@litert/http-client';
 import * as Path from 'node:path';
 
-class NPMHelper implements I.INPMHelper {
+class NPMHelper implements I.INpmHelper {
 
     private readonly _hCli = $Http.createHttpClient();
 
@@ -129,21 +129,21 @@ class NPMHelper implements I.INPMHelper {
         return `${ret.stderr}\n${ret.stdout}`;
     }
 
-    public async publish(args: any[]): Promise<string> {
+    public async publish(args: string[]): Promise<string> {
 
         const ret = await this._fs.execAt(this._cwd, 'npm', 'publish', ...args);
 
         return `${ret.stderr}\n${ret.stdout}`;
     }
 
-    public async unpublish(args: any[]): Promise<string> {
+    public async unpublish(args: string[]): Promise<string> {
 
         const ret = await this._fs.execAt(this._cwd, 'npm', 'unpublish', ...args);
 
         return `${ret.stderr}\n${ret.stdout}`;
     }
 
-    public async deprecate(args: any[]): Promise<string> {
+    public async deprecate(args: string[]): Promise<string> {
 
         const ret = await this._fs.execAt(this._cwd, 'npm', 'deprecate', ...args);
 
@@ -245,7 +245,7 @@ class NPMHelper implements I.INPMHelper {
     }
 }
 
-export function createNPMHelper(logs: I.ILogger, cwd: string, fs: I.IFileUtils): I.INPMHelper {
+export function createNPMHelper(logs: I.ILogger, cwd: string, fs: I.IFileUtils): I.INpmHelper {
 
     return new NPMHelper(logs, cwd, fs);
 }

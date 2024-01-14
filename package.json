@@ -1,6 +1,6 @@
 {
   "name": "@litert/ottoia",
-  "version": "0.3.12",
+  "version": "0.4.0",
   "description": "A simple multi-repository package manager of node.",
   "main": "lib/index.js",
   "scripts": {
@@ -27,28 +27,28 @@
     "multiple"
   ],
   "bin": {
-    "ottoia": "./cli/CMD.js"
+    "ottoia": "cli/CMD.js"
   },
   "author": "Angus.Fenying <fenying@litert.org> (https://fenying.net)",
   "license": "Apache-2.0",
   "typings": "lib/index.d.ts",
   "types": "lib/index.d.ts",
   "devDependencies": {
-    "@commitlint/cli": "^17.5.0",
-    "@commitlint/config-conventional": "^17.4.4",
-    "@litert/eslint-plugin-rules": "^0.1.3",
-    "@types/node": "^18.15.7",
-    "@types/validate-npm-package-name": "^4.0.0",
-    "eslint": "^8.36.0",
+    "@commitlint/cli": "^18.4.4",
+    "@commitlint/config-conventional": "^18.4.4",
+    "@litert/eslint-plugin-rules": "^0.1.6",
+    "@types/node": "^20.11.0",
+    "@types/validate-npm-package": "^1.0.3",
+    "@types/validate-npm-package-name": "^4.0.2",
+    "eslint": "^8.56.0",
     "husky": "^8.0.3",
-    "typescript": "^5.0.2"
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@litert/clap": "^2.0.4",
-    "@litert/exception": "^1.2.0",
-    "@litert/http-client": "^1.0.4",
-    "@litert/logger": "^1.1.4",
-    "@litert/typeguard": "^1.3.0",
+    "@litert/clap": "^3.0.0",
+    "@litert/http-client": "^1.0.5",
+    "@litert/logger": "^2.0.0",
+    "@litert/typeguard": "^1.4.0",
     "validate-npm-package-name": "^5.0.0"
   },
   "os": [
