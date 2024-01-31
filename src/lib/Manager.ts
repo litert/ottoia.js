@@ -69,15 +69,15 @@ class OttoiaManager implements C.IManager {
         }
         if (verbose >= 3) {
 
-            (logSettings.levels as I.TLogLevel[])!.push('debug3');
+            (logSettings.levels as I.TLogLevel[]).push('debug3');
         }
         if (verbose >= 2) {
 
-            (logSettings.levels as I.TLogLevel[])!.push('debug2');
+            (logSettings.levels as I.TLogLevel[]).push('debug2');
         }
         if (verbose >= 1) {
 
-            (logSettings.levels as I.TLogLevel[])!.push('debug1');
+            (logSettings.levels as I.TLogLevel[]).push('debug1');
         }
 
         I.loggerFactory.setLevelOptions(logSettings);
