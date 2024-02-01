@@ -29,7 +29,7 @@ loggerFactory.setLevelOptions({ enabled: false });
 
 export interface IReleaseOptions {
 
-    tag: string;
+    tag: string | string[];
 
     versionNamer?: string;
 
@@ -102,6 +102,8 @@ export interface INpmHelper {
     run(cmdName: string, args: string[]): Promise<string>;
 
     publish(args: string[]): Promise<string>;
+
+    distAdd(args: string[], dryRun: boolean): Promise<string>;
 
     unpublish(args: string[]): Promise<string>;
 

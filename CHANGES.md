@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.4.2
+
+- feat(cmd:release): allowed multiple tags when releasing a version.
+
 ## v0.4.0
 
 -   renamed: settings `versioner` to `versionNamer` in `package.json`.

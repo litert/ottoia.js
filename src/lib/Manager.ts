@@ -154,7 +154,9 @@ class OttoiaManager implements C.IManager {
             throw new E.E_RELEASE_CONFIG_NOT_FOUND({ env: opts.env });
         }
 
-        this._logs.debug1(`Release to tag "${cfg.tag}".`);
+        const tags = Array.isArray(cfg.tag) ? cfg.tag : [cfg.tag];
+
+        this._logs.debug1(`Release to tags "${tags.join(', ')}".`);
 
         if (!opts.confirmed) {
 
@@ -168,7 +170,7 @@ class OttoiaManager implements C.IManager {
             const pkgVersions = await this._npm.getCurrentVersionSet(
                 Object.keys(this._packages),
                 I.builtInCmpSemVersion,
-                cfg.tag
+                tags[0]
             );
 
             if (Object.keys(pkgVersions).length) {
@@ -238,13 +240,14 @@ class OttoiaManager implements C.IManager {
 
                 this._npm.chdir(pkg.root);
 
-                const extArgs: string[] = [`--tag=${cfg.tag}`];
+                const publishArgs: string[] = [`--tag=${tags[0]}`];
+                const distAddArgs: string[] = [];
 
                 if (!opts.confirmed) {
 
                     this._logs.debug1('Simulating with "--dry-run".');
 
-                    extArgs.push('--dry-run');
+                    publishArgs.push('--dry-run');
                 }
 
                 /**
@@ -252,15 +255,21 @@ class OttoiaManager implements C.IManager {
                  */
                 if (!pkg.privateAccess) {
 
-                    extArgs.push('--access=public');
+                    publishArgs.push('--access=public');
                 }
 
                 if (cfg.registry) {
 
-                    extArgs.push(`--registry`, `'${cfg.registry}'`);
+                    publishArgs.push(`--registry`, `'${cfg.registry}'`);
+                    distAddArgs.push(`--registry`, `'${cfg.registry}'`);
                 }
 
-                this._logs.debug1(await this._npm.publish(extArgs));
+                this._logs.debug1(await this._npm.publish(publishArgs));
+
+                for (const tag of tags.slice(1)) {
+
+                    this._logs.debug1(await this._npm.distAdd([...distAddArgs, `${pkgName}@${version}`, tag], !opts.confirmed));
+                }
             }
 
             this._logs.debug1('Cleaning up packages.');

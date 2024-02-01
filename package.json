@@ -1,6 +1,6 @@
 {
   "name": "@litert/ottoia",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A simple multi-repository package manager of node.",
   "main": "lib/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "clean": "rm -rf lib cli",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint --ext ts src",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",

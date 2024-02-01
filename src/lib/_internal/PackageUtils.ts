@@ -36,7 +36,7 @@ const isNodePackage = tgc.compile<I.INpmPackage>({
         'access?': ['==private', '==public'],
         'ottoia?': {
             'releases->{}': {
-                'tag': 'string',
+                'tag': ['string', 'string[1,]'],
                 'versionNamer?': 'string',
                 'registry?': 'string'
             }

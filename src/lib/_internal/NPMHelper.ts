@@ -150,6 +150,20 @@ class NPMHelper implements I.INpmHelper {
         return `${ret.stderr}\n${ret.stdout}`;
     }
 
+    public async distAdd(args: string[], dryRun: boolean): Promise<string> {
+
+        if (dryRun) {
+
+            this._logs.debug3(['Executing', 'npm', 'dist-tags', 'add', ...args].join(' '));
+
+            return ``;
+        }
+
+        const ret = await this._fs.execAt(this._cwd, 'npm', 'dist-tags', 'add', ...args);
+
+        return `${ret.stderr}\n${ret.stdout}`;
+    }
+
     public close(): void {
 
         this._hCli.close();
