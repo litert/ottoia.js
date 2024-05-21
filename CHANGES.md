@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.4.3
+
+- build(project): allow `ottoia` running in Windows.
+
 ## v0.4.2
 
 - feat(cmd:release): allowed multiple tags when releasing a version.
