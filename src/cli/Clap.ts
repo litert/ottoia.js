@@ -142,6 +142,10 @@ function createClaParser(): $Clap.IHelper {
                 'name': 'version',
                 'description': 'Specify the new version.'
             })
+            .addOption({
+                'name': 'otp',
+                'description': 'Specify the TOTP code to be used.'
+            })
         )
         .addCommand({
             name: 'recall',

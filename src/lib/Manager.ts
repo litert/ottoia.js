@@ -264,6 +264,11 @@ class OttoiaManager implements C.IManager {
                     distAddArgs.push(`--registry`, `'${cfg.registry}'`);
                 }
 
+                if (opts.otpCode) {
+
+                    publishArgs.push(`--otp=${opts.otpCode}`);
+                }
+
                 this._logs.debug1(await this._npm.publish(publishArgs));
 
                 for (const tag of tags.slice(1)) {

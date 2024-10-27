@@ -82,7 +82,8 @@ export default class OttoiaCLI {
                     withNewFeatures: !!this._cla.flags['new-feature'],
                     withPatches: !!this._cla.flags['patch'],
                     confirmed: !!this._cla.flags['confirm'],
-                    noClean: !!this._cla.flags['no-clean']
+                    noClean: !!this._cla.flags['no-clean'],
+                    otpCode: this._cla.options['otp']?.[0],
                 });
                 break;
             }

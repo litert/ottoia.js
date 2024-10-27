@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.4.4
+
+- feat(cmd:release): added OTP supports.
+
 ## v0.4.3
 
 - build(project): allow `ottoia` running in Windows.

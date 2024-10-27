@@ -67,6 +67,8 @@ export interface IReleaseOptions {
     noClean: boolean;
 
     confirmed: boolean;
+
+    otpCode?: string;
 }
 
 export type IVersionComparer = (a: string, b: string) => number;
