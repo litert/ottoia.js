@@ -1,6 +1,6 @@
 {
   "name": "@litert/ottoia",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "A simple multi-repository package manager of node.",
   "main": "lib/index.js",
   "scripts": {
@@ -34,10 +34,10 @@
   "typings": "lib/index.d.ts",
   "types": "lib/index.d.ts",
   "devDependencies": {
-    "@commitlint/cli": "^19.0.0",
-    "@commitlint/config-conventional": "^19.0.0",
-    "@litert/eslint-plugin-rules": "^0.2.0",
-    "@types/node": "^20.11.0",
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@litert/eslint-plugin-rules": "^0.3.1",
+    "@types/node": "^24.6.2",
     "@types/validate-npm-package": "^1.0.3",
     "@types/validate-npm-package-name": "^4.0.2",
     "husky": "^9.0.7",
@@ -46,9 +46,10 @@
   "dependencies": {
     "@litert/clap": "^3.0.0",
     "@litert/http-client": "^1.1.0",
-    "@litert/logger": "^2.0.0",
+    "@litert/logger": "^2.1.0",
+    "@litert/otp": "^2.0.0",
     "@litert/typeguard": "^1.4.0",
-    "validate-npm-package-name": "^5.0.0"
+    "validate-npm-package-name": "^6.0.2"
   },
   "os": [
     "linux",

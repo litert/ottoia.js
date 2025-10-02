@@ -1,5 +1,9 @@
 # Changes Logs
 
+## v0.4.5
+
+- feat(skeleton): added `OtpHelper` to generate OTP code from secret.
+
 ## v0.4.4
 
 - feat(cmd:release): added OTP supports.
