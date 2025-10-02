@@ -84,6 +84,7 @@ export default class OttoiaCLI {
                     confirmed: !!this._cla.flags['confirm'],
                     noClean: !!this._cla.flags['no-clean'],
                     otpCode: this._cla.options['otp']?.[0],
+                    otpSecret: this._cla.options['otp-secret']?.[0],
                 });
                 break;
             }

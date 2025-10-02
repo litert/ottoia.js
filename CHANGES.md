@@ -2,6 +2,7 @@
 
 ## v0.4.5
 
+- feat(cmd:release): added `--otp-secret` option to specify OTP secret on releasing.
 - feat(skeleton): added `OtpHelper` to generate OTP code from secret.
 
 ## v0.4.4

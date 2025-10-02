@@ -20,6 +20,7 @@ import * as C from './Common';
 import * as I from './_internal';
 import * as E from './Errors';
 import * as $Logs from '@litert/logger';
+import { OtpHelper } from './_internal/OtpHelper';
 
 const DEP_VER_PLACE_HOLDER = '-';
 
@@ -215,6 +216,20 @@ class OttoiaManager implements C.IManager {
 
         this._logs.info(`Releasing the ${opts.env} version "v${version}"...`);
 
+        const otpLoader = new OtpHelper();
+
+        if (!opts.otpCode) {
+
+            if (opts.otpSecret) {
+
+                otpLoader.setSecret(opts.otpSecret);
+            }
+            else {
+
+                otpLoader.loadSecret(this._root);
+            }
+        }
+
         try {
 
             this._logs.debug1('Backing up the package.json...');
@@ -269,6 +284,10 @@ class OttoiaManager implements C.IManager {
                 if (opts.otpCode) {
 
                     publishArgs.push(`--otp=${opts.otpCode}`);
+                }
+                else if (otpLoader.isLoaded()) {
+
+                    publishArgs.push(`--otp=${otpLoader.getCode()!}`);
                 }
 
                 this._logs.debug1(await this._npm.publish(publishArgs));

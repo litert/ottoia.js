@@ -68,7 +68,9 @@ export interface IReleaseOptions {
 
     confirmed: boolean;
 
-    otpCode?: string;
+    otpCode?: string | null;
+
+    otpSecret?: string | null;
 }
 
 export type IVersionComparer = (a: string, b: string) => number;

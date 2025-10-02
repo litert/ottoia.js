@@ -146,6 +146,10 @@ function createClaParser(): $Clap.IHelper {
                 'name': 'otp',
                 'description': 'Specify the TOTP code to be used.'
             })
+            .addOption({
+                'name': 'otp-secret',
+                'description': 'Specify the TOTP secret to be used.'
+            })
         )
         .addCommand({
             name: 'recall',
